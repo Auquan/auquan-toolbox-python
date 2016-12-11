@@ -99,11 +99,11 @@ def plot(daily_pnl, total_pnl, baseline_daily_pnl, baseline_total_pnl, budget, f
             'total pnl: %0.2f%%'%(total_pnl.iloc[total_pnl.index.size-1].sum()) + '\n' + \
             'annualized return: %0.2f%%'%annualized_return(daily_return) + '\n' + \
             'annual vol: %0.2f%%'%annual_vol(daily_return) + '\n' + \
+            'beta: %0.2f'%beta(daily_return,baseline_daily_pnl) + '\n' + \
             'sharpe ratio: %0.2f'%sharpe_ratio(daily_return) + '\n' + \
             'sortino ratio: %0.2f'%sortino_ratio(daily_return) + '\n' + \
             'max drawdown: %0.2f'%max_drawdown(daily_return)
     print stats
-    print
     plt.close('all')
     zero_line = np.zeros(daily_pnl.index.size)
     f, plot_arr = plt.subplots(2, sharex=True)
@@ -149,6 +149,9 @@ def sortino_ratio(daily_return):
 
 def max_drawdown(daily_return):
     return np.max(np.maximum.accumulate(daily_return) - daily_return)
+
+def beta(daily_return, baseline_daily_return):
+    return np.corrcoef(daily_return, baseline_daily_return)[0,1]*np.std(daily_return)/np.std(baseline_daily_return)
 
 def baseline(base_index, lookback, date_range):
     features = ['OPEN', 'CLOSE', 'HIGH', 'LOW', 'VOLUME']
