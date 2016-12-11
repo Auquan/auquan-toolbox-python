@@ -1,6 +1,18 @@
 import pandas as pd
 
-def trading_strategy(lookback_data, markets, budget):
+def trading_strategy(lookback_data, markets, budget_curr):
+    """
+    :param lookback_data: Data for the past n days as set in the main settings.
+     It is a dictionary of features available for decision making, such as,
+     'OPEN', 'CLOSE', 'HIGH', 'LOW', 'VOLUME', 'SLIPPAGE', 'POSITION', 'ORDER',
+     'FILLED_ORDER', 'DAILY_PNL', 'TOTAL_PNL', 'BUDGET', 'VALUE'
+     The data is in the form of pandas dataframe with dates as the index (row)
+     and markets as columns. Higher index has more recent data.
+    :param markets: List of markets that are you are interested in as per main settings
+    :param budget: Current available budget based on which the order should be placed
+    :return: List of number of stocks per market that you wish to buy (>0) or sell (<0)
+    """
+
     sma_long_period = 90
     sma_short_period = 20
     markets_close = lookback_data['OPEN'] # DataFrame
