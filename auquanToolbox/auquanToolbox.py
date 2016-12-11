@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 def data_available(markets):
     return True
 
-def load_data(markets, start, end, random=False):
+def load_data(exchange, markets, start, end, random=False):
     markets = [m.upper() for m in markets]
     features = ['OPEN', 'CLOSE', 'HIGH', 'LOW', 'VOLUME']
     date_range = pd.date_range(start=start, end=end, freq='B')
@@ -27,7 +27,7 @@ def load_data(markets, start, end, random=False):
     else:
         assert data_available(markets)
         for market in markets:
-            csv = pd.read_csv('nasdaq/historicalData/%s.csv'%market.lower(), index_col=0)
+            csv = pd.read_csv('%s/historicalData/%s.csv'%(exchange,market.lower()), index_col=0)
             csv.index = pd.to_datetime(csv.index)
             csv.columns = [col.upper() for col in csv.columns]
             csv = csv.reindex(index=csv.index[::-1])
@@ -183,8 +183,8 @@ def baseline(base_index, lookback, date_range):
 
     return baseline_data
 
-def backtest(markets, trading_strategy, start, end, budget, lookback, base_index='INX'):
-    (back_data, date_range) = load_data(markets, start, end)
+def backtest(exchange, markets, trading_strategy, start, end, budget, lookback, base_index='INX'):
+    (back_data, date_range) = load_data(exchange, markets, start, end)
     # print 'Price: %s'%back_data['OPEN']
     print 'Starting budget: %d'%budget
     print '------------------------------------'
@@ -241,8 +241,8 @@ def backtest(markets, trading_strategy, start, end, budget, lookback, base_index
     print back_data['SLIPPAGE']
     """
 
-def analyze(markets, start, end):
-    (back_data, days) = load_data(markets, start, end)
+def analyze(exchange, markets, start, end):
+    (back_data, days) = load_data(exchange, markets, start, end)
     plt.close('all')
     f, plot_arr = plt.subplots(2, sharex=True)
     plot_arr[0].set_title('Open')

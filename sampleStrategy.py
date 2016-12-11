@@ -17,9 +17,9 @@ def trading_strategy(lookback_data, markets, budget):
 
 if __name__ == '__main__':
     import auquanToolbox.auquanToolbox as at
-
+    exchange = "nasdaq"
     markets = ['CIA', 'ALL', 'AAPL']
     date_start = '2015-11-15'
     date_end = '2016-11-10'
-    # analyze(markets, start=date_start, end=date_end)
-    at.backtest(markets, trading_strategy, start=date_start, end=date_end, budget=10000, lookback=90)
+    # at.analyze(exchange, markets, start=date_start, end=date_end)
+    at.backtest(exchange, markets, trading_strategy, start=date_start, end=date_end, budget=10000, lookback=90)
