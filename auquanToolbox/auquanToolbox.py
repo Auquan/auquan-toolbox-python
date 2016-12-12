@@ -156,19 +156,31 @@ def annualized_downside_std(daily_return):
     return 256*np.std(downside_returns)
 
 def annual_vol(daily_return):
-    return np.sqrt(annualized_return(daily_return))
+    return np.sqrt(annualized_std(daily_return))
 
 def sharpe_ratio(daily_return):
-    return annualized_return(daily_return)/annualized_std(daily_return)
+    stdev = annualized_std(daily_return)
+    if stdev == 0:
+        return np.nan
+    else:
+        return annualized_return(daily_return)/stdev
 
 def sortino_ratio(daily_return):
-    return annualized_return(daily_return)/annualized_downside_std(daily_return)
+    stdev = annualized_downside_std(daily_return)
+    if stdev == 0:
+        return np.nan
+    else:
+        return annualized_return(daily_return)/stdev
 
 def max_drawdown(daily_return):
     return np.max(np.maximum.accumulate(daily_return) - daily_return)
 
 def beta(daily_return, baseline_daily_return):
-    return np.corrcoef(daily_return, baseline_daily_return)[0,1]*np.std(daily_return)/np.std(baseline_daily_return)
+    stdev = np.std(baseline_daily_return)
+    if stdev == 0:
+        return np.nan
+    else:
+        return np.corrcoef(daily_return, baseline_daily_return)[0,1]*np.std(daily_return)/stdev
 
 def baseline(exchange, base_index, lookback, date_range):
     features = ['OPEN', 'CLOSE', 'HIGH', 'LOW', 'VOLUME']
@@ -202,10 +214,13 @@ def baseline(exchange, base_index, lookback, date_range):
 
 def backtest(exchange, markets, trading_strategy, start, end, budget, lookback, base_index='INX'):
     (back_data, date_range) = load_data(exchange, markets, start, end)
+    assert (date_range.size > lookback), "Lookback is more than the date range. Exiting!"
+
     # print('Price: %s'%back_data['OPEN'])
     print('Starting budget: %d'%budget)
     print('------------------------------------')
     budget_curr = budget
+    position_curr = back_data['POSITION'].iloc[lookback - 1]
     for end in range(lookback, date_range.size):
         start = end - lookback
 
