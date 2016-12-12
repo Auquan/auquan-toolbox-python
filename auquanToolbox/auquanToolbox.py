@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import absolute_import, division, print_function, unicode_literals
 import numpy as np
 import pandas as pd
 import urllib
@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 def download(exchange, ticker, file_name):
     url = 'https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/%s/historicalData/%s.csv'%(exchange.lower(), ticker.lower())
-    print 'Downloading %s data from url: %s to file: %s'%(ticker, url, file_name)
+    print('Downloading %s data to file: %s'%(ticker, file_name))
     urllib.urlretrieve(url, file_name)
 
 def data_available(exchange, markets):
@@ -74,11 +74,11 @@ def execute_sell(order, position, slippage, price, budget):
     position_curr = position.copy()
     position_curr[order < 0] += order[order < 0]
     if (position_curr < 0).any():
-        print 'Short selling not supported! Selling available quantity.'
+        print('Short selling not supported! Selling available quantity.')
     position_curr[position_curr < 0] = 0
     total_commission = (position - position_curr).sum() * commission()
     if total_commission > budget:
-        print 'Sell order exceeds budget! Sell order cancelled.'
+        print('Sell order exceeds budget! Sell order cancelled.')
         return position, budget
     else:
         slippage_adjusted_price = price - slippage
@@ -91,7 +91,7 @@ def execute_buy(order, position, slippage, price, budget):
     total_commission = order[order > 0].sum() * commission()
     total_slippage = (order[order > 0] * slippage[order > 0]).sum()
     if (order_cost + total_commission + total_slippage) > budget:
-        print 'Buy order exceeds budget! Buy order cancelled.'
+        print('Buy order exceeds budget! Buy order cancelled.')
         return position, budget
     else:
         position_curr[order > 0] += order[order > 0]
@@ -99,7 +99,7 @@ def execute_buy(order, position, slippage, price, budget):
 
 def execute_order(order, position, slippage, price, budget):
     if pd.isnull(price[order != 0]).values.any():
-        print 'Cannot place order for markets with price unavailable! Order cancelled.'
+        print('Cannot place order for markets with price unavailable! Order cancelled.')
         return position, budget
     else:
         (position_after_sell, budget_after_sell) = execute_sell(order, position, slippage, price, budget)
@@ -117,7 +117,7 @@ def plot(daily_pnl, total_pnl, baseline_daily_pnl, baseline_total_pnl, budget, f
             'sharpe ratio: %0.2f'%sharpe_ratio(daily_return) + '\n' + \
             'sortino ratio: %0.2f'%sortino_ratio(daily_return) + '\n' + \
             'max drawdown: %0.2f'%max_drawdown(daily_return)
-    print stats
+    print(stats)
     plt.close('all')
     zero_line = np.zeros(daily_pnl.index.size)
     f, plot_arr = plt.subplots(2, sharex=True)
@@ -199,9 +199,9 @@ def baseline(exchange, base_index, lookback, date_range):
 
 def backtest(exchange, markets, trading_strategy, start, end, budget, lookback, base_index='INX'):
     (back_data, date_range) = load_data(exchange, markets, start, end)
-    # print 'Price: %s'%back_data['OPEN']
-    print 'Starting budget: %d'%budget
-    print '------------------------------------'
+    # print('Price: %s'%back_data['OPEN'])
+    print('Starting budget: %d'%budget)
+    print('------------------------------------')
     budget_curr = budget
     for end in range(lookback, date_range.size):
         start = end - lookback
@@ -209,7 +209,7 @@ def backtest(exchange, markets, trading_strategy, start, end, budget, lookback, 
         # get order
         lookback_data = {feature: data[start: end] for feature, data in back_data.items()}
         order = trading_strategy(lookback_data, markets, budget_curr)
-        print 'order: %s'%order.values
+        print('order: %s'%order.values)
 
         # evaluate new position based on order and budget
         price_curr = back_data['OPEN'].iloc[end]
@@ -234,13 +234,13 @@ def backtest(exchange, markets, trading_strategy, start, end, budget, lookback, 
         value_curr = budget_curr + (position_curr*close_curr).sum()
         back_data['VALUE'].iloc[end] = value_curr
 
-        print 'price        : %s'%price_curr.values
-        print 'order        : %s'%order.values
-        print 'position     : %s'%position_curr.values
-        print 'pnl          : %s'%pnl_curr.values
-        print 'budget on day %d: %0.2f'%((end+1), budget_curr)
-        print 'value on day %d: %0.2f'%((end+1), value_curr)
-        print '------------------------------------'
+        print('price        : %s'%price_curr.values)
+        print('order        : %s'%order.values)
+        print('position     : %s'%position_curr.values)
+        print('pnl          : %s'%pnl_curr.values)
+        print('budget on day %d: %0.2f'%((end+1), budget_curr))
+        print('value on day %d: %0.2f'%((end+1), value_curr))
+        print('------------------------------------')
 
     baseline_data = baseline(exchange, base_index, lookback, date_range)
     final_budget = budget_curr + (position_curr * close_curr).sum()
@@ -249,10 +249,10 @@ def backtest(exchange, markets, trading_strategy, start, end, budget, lookback, 
          budget, final_budget)
 
     """
-    print back_data['POSITION']
-    print back_data['ORDER']
-    print back_data['FILLED_ORDER']
-    print back_data['SLIPPAGE']
+    print(back_data['POSITION'])
+    print(back_data['ORDER'])
+    print(back_data['FILLED_ORDER'])
+    print(back_data['SLIPPAGE'])
     """
 
 def analyze(exchange, markets, start, end):
