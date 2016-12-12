@@ -1,13 +1,27 @@
 from __future__ import division
 import numpy as np
 import pandas as pd
+import urllib
 import matplotlib
+import os
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import style
 import matplotlib.pyplot as plt
 
-def data_available(markets):
+def download(exchange, ticker, file_name):
+    url = 'https://raw.githubusercontent.com/Auquan/auquan-toolbox-python/master/%s/historicalData/%s.csv'%(exchange.lower(), ticker.lower())
+    print 'Downloading %s data from url: %s to file: %s'%(ticker, url, file_name)
+    urllib.urlretrieve(url, file_name)
+
+def data_available(exchange, markets):
+    dir_name = '%s/historicalData/'%exchange.lower()
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+    for m in markets:
+        file_name = '%s%s.csv'%(dir_name, m.lower())
+        if not os.path.exists(file_name):
+            download(exchange, m, file_name)
     return True
 
 def load_data(exchange, markets, start, end, random=False):
@@ -21,13 +35,13 @@ def load_data(exchange, markets, start, end, random=False):
 
     if random:
         for feature in features:
-            back_data[feature] = pd.DataFrame(np.random.randint(10,50,size=(date_range.size,len(markets))),
+            back_data[feature] = pd.DataFrame(np.random.randint(10, 50, size=(date_range.size,len(markets))),
                                               index=date_range,
                                               columns=markets)
     else:
-        assert data_available(markets)
+        assert data_available(exchange, markets)
         for market in markets:
-            csv = pd.read_csv('%s/historicalData/%s.csv'%(exchange,market.lower()), index_col=0)
+            csv = pd.read_csv('%s/historicalData/%s.csv'%(exchange.lower(), market.lower()), index_col=0)
             csv.index = pd.to_datetime(csv.index)
             csv.columns = [col.upper() for col in csv.columns]
             csv = csv.reindex(index=csv.index[::-1])
@@ -153,14 +167,14 @@ def max_drawdown(daily_return):
 def beta(daily_return, baseline_daily_return):
     return np.corrcoef(daily_return, baseline_daily_return)[0,1]*np.std(daily_return)/np.std(baseline_daily_return)
 
-def baseline(base_index, lookback, date_range):
+def baseline(exchange, base_index, lookback, date_range):
     features = ['OPEN', 'CLOSE', 'HIGH', 'LOW', 'VOLUME']
     baseline_data = {}
 
     for feature in features:
         baseline_data[feature] = pd.Series(index=date_range)
 
-    assert data_available([base_index])
+    assert data_available(exchange, [base_index])
     csv = pd.read_csv('nasdaq/historicalData/%s.csv'%base_index.lower(), index_col=0)
     csv.index = pd.to_datetime(csv.index)
     csv.columns = [col.upper() for col in csv.columns]
@@ -228,7 +242,7 @@ def backtest(exchange, markets, trading_strategy, start, end, budget, lookback, 
         print 'value on day %d: %0.2f'%((end+1), value_curr)
         print '------------------------------------'
 
-    baseline_data = baseline(base_index, lookback, date_range)
+    baseline_data = baseline(exchange, base_index, lookback, date_range)
     final_budget = budget_curr + (position_curr * close_curr).sum()
     plot(back_data['DAILY_PNL'], back_data['TOTAL_PNL'],
          baseline_data['DAILY_PNL'], baseline_data['TOTAL_PNL'],
