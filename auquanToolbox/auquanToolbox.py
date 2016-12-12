@@ -10,7 +10,7 @@ from matplotlib import style
 import matplotlib.pyplot as plt
 
 def download(exchange, ticker, file_name):
-    url = 'https://raw.githubusercontent.com/Auquan/auquan-toolbox-python/master/%s/historicalData/%s.csv'%(exchange.lower(), ticker.lower())
+    url = 'https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/%s/historicalData/%s.csv'%(exchange.lower(), ticker.lower())
     print 'Downloading %s data from url: %s to file: %s'%(ticker, url, file_name)
     urllib.urlretrieve(url, file_name)
 
