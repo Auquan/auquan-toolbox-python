@@ -1,7 +1,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+try:
+    from urllib import urlretrieve
+except ImportError:
+    from urllib.request import urlretrieve
 import numpy as np
 import pandas as pd
-import urllib
 import matplotlib
 import os
 matplotlib.use("TkAgg")
@@ -12,7 +15,7 @@ import matplotlib.pyplot as plt
 def download(exchange, ticker, file_name):
     url = 'https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/%s/historicalData/%s.csv'%(exchange.lower(), ticker.lower())
     print('Downloading %s data to file: %s'%(ticker, file_name))
-    urllib.urlretrieve(url, file_name)
+    urlretrieve(url, file_name)
 
 def data_available(exchange, markets):
     dir_name = '%s/historicalData/'%exchange.lower()
