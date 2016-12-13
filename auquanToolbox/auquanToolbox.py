@@ -79,37 +79,45 @@ def execute_sell(order, position, slippage, price, budget):
     if (position_curr < 0).any():
         print('Short selling not supported! Selling available quantity.')
     position_curr[position_curr < 0] = 0
-    total_commission = (position - position_curr).sum() * commission()
+    per_commission = (position - position_curr) * commission()
+    total_commission = per_commission.sum()
     if total_commission > budget:
         print('Sell order exceeds budget! Sell order cancelled.')
-        return position, budget
+        return position, budget, per_commission*0
     else:
         slippage_adjusted_price = price - slippage
         slippage_adjusted_price[slippage_adjusted_price < 0] = 0
-        return position_curr, budget - total_commission + ((position - position_curr)*slippage_adjusted_price).sum()
+        per_slippage = (price - slippage_adjusted_price)*(position - position_curr)
+        return position_curr, \
+               budget - total_commission + ((position - position_curr)*slippage_adjusted_price).sum(), \
+               per_commission + per_slippage
 
 def execute_buy(order, position, slippage, price, budget):
-    position_curr = position.copy()
     order_cost = (order[order > 0] * price[order > 0]).sum()
-    total_commission = order[order > 0].sum() * commission()
-    total_slippage = (order[order > 0] * slippage[order > 0]).sum()
-
+    per_commission = order * commission()
+    per_commission[order < 0] = 0
+    total_commission = per_commission.sum()
+    per_slippage = order * slippage
+    per_slippage[order < 0] = 0
+    total_slippage = per_slippage.sum()
     if (order_cost + total_commission + total_slippage) > budget:
         print('Buy order exceeds budget! Buy order cancelled.')
-        return position, budget
+        return position, budget, per_commission*0
     else:
-
+        position_curr = position.copy()
         position_curr[order > 0] += order[order > 0]
-        return position_curr, budget - order_cost - total_commission - total_slippage
+        return position_curr, \
+               budget - order_cost - total_commission - total_slippage, \
+               per_commission + per_slippage
 
 def execute_order(order, position, slippage, price, budget):
     if pd.isnull(price[order != 0]).values.any():
         print('Cannot place order for markets with price unavailable! Order cancelled.')
         return position, budget
     else:
-        (position_after_sell, budget_after_sell) = execute_sell(order, position, slippage, price, budget)
-        (position_after_buy, budget_after_buy) = execute_buy(order, position_after_sell, slippage, price, budget_after_sell)
-        return position_after_buy, budget_after_buy
+        (position_after_sell, budget_after_sell, sell_order_loss) = execute_sell(order, position, slippage, price, budget)
+        (position_after_buy, budget_after_buy, buy_order_loss) = execute_buy(order, position_after_sell, slippage, price, budget_after_sell)
+        return position_after_buy, budget_after_buy, (sell_order_loss + buy_order_loss)
 
 def plot(daily_pnl, total_pnl, baseline_daily_pnl, baseline_total_pnl, budget, final_budget):
     daily_return = daily_pnl.sum(axis=1)
@@ -147,7 +155,10 @@ def plot(daily_pnl, total_pnl, baseline_daily_pnl, baseline_total_pnl, budget, f
 def annualized_return(daily_return):
     total_return = daily_return.sum()
     total_days = daily_return.index.size
-    return (1 + total_return)**(256 / total_days) - 1
+    if total_return > 0:
+        return (1 + total_return)**(256 / total_days) - 1
+    else:
+        return 1 - (1 - total_return)**(256 / total_days)
 
 def annualized_std(daily_return):
     return 256*np.std(daily_return)
@@ -238,7 +249,7 @@ def backtest(exchange, markets, trading_strategy, start, end, budget, lookback, 
         price_curr = back_data['OPEN'].iloc[end]
         slippage = back_data['SLIPPAGE'].iloc[end - 1]
         position_last = back_data['POSITION'].iloc[end - 1]
-        (position_curr, budget_curr) = execute_order(order, position_last, slippage, price_curr, budget_curr)
+        (position_curr, budget_curr, order_loss) = execute_order(order, position_last, slippage, price_curr, budget_curr)
 
         # set info in back data
         back_data['POSITION'].iloc[end] = position_curr
@@ -249,7 +260,7 @@ def backtest(exchange, markets, trading_strategy, start, end, budget, lookback, 
         open_curr = back_data['OPEN'].iloc[end]
         close_curr = back_data['CLOSE'].iloc[end]
         close_last = back_data['CLOSE'].iloc[end-1]
-        pnl_curr = (position_curr * (close_curr - close_last) + filled_order * (close_last - open_curr)) * 100 / budget
+        pnl_curr = (position_curr * (close_curr - close_last) + filled_order * (close_last - open_curr) - order_loss) * 100 / budget
         back_data['DAILY_PNL'].iloc[end] = pnl_curr
         back_data['TOTAL_PNL'].iloc[end] = pnl_curr + back_data['TOTAL_PNL'].iloc[end - 1]
 
