@@ -86,17 +86,19 @@ def execute_sell(order, position, slippage, price, budget):
     else:
         slippage_adjusted_price = price - slippage
         slippage_adjusted_price[slippage_adjusted_price < 0] = 0
-        return position_curr, budget + ((position - position_curr)*slippage_adjusted_price).sum()
+        return position_curr, budget - total_commission + ((position - position_curr)*slippage_adjusted_price).sum()
 
 def execute_buy(order, position, slippage, price, budget):
     position_curr = position.copy()
     order_cost = (order[order > 0] * price[order > 0]).sum()
     total_commission = order[order > 0].sum() * commission()
     total_slippage = (order[order > 0] * slippage[order > 0]).sum()
+
     if (order_cost + total_commission + total_slippage) > budget:
         print('Buy order exceeds budget! Buy order cancelled.')
         return position, budget
     else:
+
         position_curr[order > 0] += order[order > 0]
         return position_curr, budget - order_cost - total_commission - total_slippage
 
@@ -111,15 +113,15 @@ def execute_order(order, position, slippage, price, budget):
 
 def plot(daily_pnl, total_pnl, baseline_daily_pnl, baseline_total_pnl, budget, final_budget):
     daily_return = daily_pnl.sum(axis=1)
-    stats = 'initial budget: %0.2f'%budget + '\n' + \
-            'final budget: %0.2f'%final_budget + '\n' + \
-            'total pnl: %0.2f%%'%(total_pnl.iloc[total_pnl.index.size-1].sum()) + '\n' + \
-            'annualized return: %0.2f%%'%annualized_return(daily_return) + '\n' + \
-            'annual vol: %0.2f%%'%annual_vol(daily_return) + '\n' + \
-            'beta: %0.2f'%beta(daily_return,baseline_daily_pnl) + '\n' + \
-            'sharpe ratio: %0.2f'%sharpe_ratio(daily_return) + '\n' + \
-            'sortino ratio: %0.2f'%sortino_ratio(daily_return) + '\n' + \
-            'max drawdown: %0.2f'%max_drawdown(daily_return)
+    stats = 'Starting Funds: %0.2f'%budget + '\n' + \
+            'Final Value: %0.2f'%final_budget + '\n' + \
+            'Total PnL: %0.2f%%'%(total_pnl.iloc[total_pnl.index.size-1].sum()) + '\n' + \
+            'Annualized Return: %0.2f%%'%annualized_return(daily_return) + '\n' + \
+            'Annual Vol: %0.2f%%'%annual_vol(daily_return) + '\n' + \
+            'Beta: %0.2f'%beta(daily_return,baseline_daily_pnl) + '\n' + \
+            'Sharpe Ratio: %0.2f'%sharpe_ratio(daily_return) + '\n' + \
+            'Sortino Ratio: %0.2f'%sortino_ratio(daily_return) + '\n' + \
+            'Max Drawdown: %0.2f'%max_drawdown(daily_return)
     print(stats)
     plt.close('all')
     zero_line = np.zeros(daily_pnl.index.size)
@@ -213,14 +215,17 @@ def baseline(exchange, base_index, lookback, date_range):
     return baseline_data
 
 def backtest(exchange, markets, trading_strategy, start, end, budget, lookback, base_index='INX'):
+    assert (lookback > 0), 'Lookback should be > 0. Exiting!'
+
     (back_data, date_range) = load_data(exchange, markets, start, end)
-    assert (date_range.size > lookback), "Lookback is more than the date range. Exiting!"
+    assert (date_range.size > lookback), "Lookback %d is more than the date range %d. Exiting!"%(lookback,date_range.size)
 
     # print('Price: %s'%back_data['OPEN'])
     print('Starting budget: %d'%budget)
     print('------------------------------------')
     budget_curr = budget
     position_curr = back_data['POSITION'].iloc[lookback - 1]
+    date_labels = date_range.date
     for end in range(lookback, date_range.size):
         start = end - lookback
 
@@ -252,13 +257,14 @@ def backtest(exchange, markets, trading_strategy, start, end, budget, lookback, 
         value_curr = budget_curr + (position_curr*close_curr).sum()
         back_data['VALUE'].iloc[end] = value_curr
 
-        print('price        : %s'%price_curr.values)
-        print('order        : %s'%order.values)
-        print('position     : %s'%position_curr.values)
-        print('pnl          : %s'%pnl_curr.values)
-        print('budget on day %d: %0.2f'%((end+1), budget_curr))
-        print('value on day %d: %0.2f'%((end+1), value_curr))
-        print('------------------------------------')
+        status_str = 'Open Price                       : %s'%price_curr.values + '\n' + \
+                     'Order                            : %s'%order.values + '\n' + \
+                     'Position                         : %s'%position_curr.values + '\n' + \
+                     'PnL                              : %s'%pnl_curr.values + '\n' + \
+                     'Available funds on day %s: %0.2f'%(date_labels[end], budget_curr) + '\n' + \
+                     'Portfolio value on day %s: %0.2f'%(date_labels[end], value_curr) + '\n' + \
+                     '------------------------------------'
+        print(status_str)
 
     baseline_data = baseline(exchange, base_index, lookback, date_range)
     final_budget = budget_curr + (position_curr * close_curr).sum()
