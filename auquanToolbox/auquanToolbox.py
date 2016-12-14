@@ -3,6 +3,8 @@ try:
     from urllib import urlretrieve
 except ImportError:
     from urllib.request import urlretrieve
+import logging
+import datetime as dt
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -12,22 +14,22 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import style
 import matplotlib.pyplot as plt
 
-def download(exchange, ticker, file_name):
+def download(logger, exchange, ticker, file_name):
     url = 'https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/%s/historicalData/%s.csv'%(exchange.lower(), ticker.lower())
-    print('Downloading %s data to file: %s'%(ticker, file_name))
+    logger.info('Downloading %s data to file: %s'%(ticker, file_name))
     urlretrieve(url, file_name)
 
-def data_available(exchange, markets):
+def data_available(logger, exchange, markets):
     dir_name = '%s/historicalData/'%exchange.lower()
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
     for m in markets:
         file_name = '%s%s.csv'%(dir_name, m.lower())
         if not os.path.exists(file_name):
-            download(exchange, m, file_name)
+            download(logger, exchange, m, file_name)
     return True
 
-def load_data(exchange, markets, start, end, random=False):
+def load_data(logger, exchange, markets, start, end, random=False):
     markets = [m.upper() for m in markets]
     features = ['OPEN', 'CLOSE', 'HIGH', 'LOW', 'VOLUME']
     date_range = pd.date_range(start=start, end=end, freq='B')
@@ -42,7 +44,7 @@ def load_data(exchange, markets, start, end, random=False):
                                               index=date_range,
                                               columns=markets)
     else:
-        assert data_available(exchange, markets)
+        assert data_available(logger, exchange, markets)
         for market in markets:
             csv = pd.read_csv('%s/historicalData/%s.csv'%(exchange.lower(), market.lower()), index_col=0)
             csv.index = pd.to_datetime(csv.index)
@@ -73,16 +75,16 @@ def load_data(exchange, markets, start, end, random=False):
 def commission():
     return 0.1
 
-def execute_sell(order, position, slippage, price, budget):
+def execute_sell(logger, order, position, slippage, price, budget):
     position_curr = position.copy()
     position_curr[order < 0] += order[order < 0]
     if (position_curr < 0).any():
-        print('Short selling not supported! Selling available quantity.')
+        logger.info('Short selling not supported! Selling available quantity.')
     position_curr[position_curr < 0] = 0
     per_commission = (position - position_curr) * commission()
     total_commission = per_commission.sum()
     if total_commission > budget:
-        print('Sell order exceeds budget! Sell order cancelled.')
+        logger.info('Sell order exceeds budget! Sell order cancelled.')
         return position, budget, per_commission*0
     else:
         slippage_adjusted_price = price - slippage
@@ -92,7 +94,7 @@ def execute_sell(order, position, slippage, price, budget):
                budget - total_commission + ((position - position_curr)*slippage_adjusted_price).sum(), \
                per_commission + per_slippage
 
-def execute_buy(order, position, slippage, price, budget):
+def execute_buy(logger, order, position, slippage, price, budget):
     order_cost = (order[order > 0] * price[order > 0]).sum()
     per_commission = order * commission()
     per_commission[order < 0] = 0
@@ -101,7 +103,7 @@ def execute_buy(order, position, slippage, price, budget):
     per_slippage[order < 0] = 0
     total_slippage = per_slippage.sum()
     if (order_cost + total_commission + total_slippage) > budget:
-        print('Buy order exceeds budget! Buy order cancelled.')
+        logger.info('Buy order exceeds budget! Buy order cancelled.')
         return position, budget, per_commission*0
     else:
         position_curr = position.copy()
@@ -110,16 +112,16 @@ def execute_buy(order, position, slippage, price, budget):
                budget - order_cost - total_commission - total_slippage, \
                per_commission + per_slippage
 
-def execute_order(order, position, slippage, price, budget):
+def execute_order(logger, order, position, slippage, price, budget):
     if pd.isnull(price[order != 0]).values.any():
-        print('Cannot place order for markets with price unavailable! Order cancelled.')
+        logger.info('Cannot place order for markets with price unavailable! Order cancelled.')
         return position, budget
     else:
-        (position_after_sell, budget_after_sell, sell_order_loss) = execute_sell(order, position, slippage, price, budget)
-        (position_after_buy, budget_after_buy, buy_order_loss) = execute_buy(order, position_after_sell, slippage, price, budget_after_sell)
+        (position_after_sell, budget_after_sell, sell_order_loss) = execute_sell(logger, order, position, slippage, price, budget)
+        (position_after_buy, budget_after_buy, buy_order_loss) = execute_buy(logger, order, position_after_sell, slippage, price, budget_after_sell)
         return position_after_buy, budget_after_buy, (sell_order_loss + buy_order_loss)
 
-def plot(daily_pnl, total_pnl, baseline_daily_pnl, baseline_total_pnl, budget, final_budget):
+def plot(logger, daily_pnl, total_pnl, baseline_daily_pnl, baseline_total_pnl, budget, final_budget):
     daily_return = daily_pnl.sum(axis=1)
     stats = 'Starting Funds: %0.2f'%budget + '\n' + \
             'Final Value: %0.2f'%final_budget + '\n' + \
@@ -130,7 +132,7 @@ def plot(daily_pnl, total_pnl, baseline_daily_pnl, baseline_total_pnl, budget, f
             'Sharpe Ratio: %0.2f'%sharpe_ratio(daily_return) + '\n' + \
             'Sortino Ratio: %0.2f'%sortino_ratio(daily_return) + '\n' + \
             'Max Drawdown: %0.2f'%max_drawdown(daily_return)
-    print(stats)
+    logger.info(stats)
     plt.close('all')
     zero_line = np.zeros(daily_pnl.index.size)
     f, plot_arr = plt.subplots(2, sharex=True)
@@ -195,14 +197,14 @@ def beta(daily_return, baseline_daily_return):
     else:
         return np.corrcoef(daily_return, baseline_daily_return)[0,1]*np.std(daily_return)/stdev
 
-def baseline(exchange, base_index, lookback, date_range):
+def baseline(logger, exchange, base_index, lookback, date_range):
     features = ['OPEN', 'CLOSE', 'HIGH', 'LOW', 'VOLUME']
     baseline_data = {}
 
     for feature in features:
         baseline_data[feature] = pd.Series(index=date_range)
 
-    assert data_available(exchange, [base_index])
+    assert data_available(logger, exchange, [base_index])
     csv = pd.read_csv('nasdaq/historicalData/%s.csv'%base_index.lower(), index_col=0)
     csv.index = pd.to_datetime(csv.index)
     csv.columns = [col.upper() for col in csv.columns]
@@ -225,15 +227,32 @@ def baseline(exchange, base_index, lookback, date_range):
 
     return baseline_data
 
+def get_logger():
+    logger_name = dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.DEBUG)
+    logger_dir = 'runLogs/'
+    logger_file = '%srun-%s.txt'%(logger_dir,logger_name)
+    if not os.path.exists(logger_dir):
+        os.makedirs(logger_dir)
+    formatter = logging.Formatter('%(message)s')
+    file_handler = logging.FileHandler(logger_file)
+    console_handler = logging.StreamHandler()
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    return logger
+
 def backtest(exchange, markets, trading_strategy, start, end, budget, lookback, base_index='INX'):
+    logger = get_logger()
     assert (lookback > 0), 'Lookback should be > 0. Exiting!'
 
-    (back_data, date_range) = load_data(exchange, markets, start, end)
+    (back_data, date_range) = load_data(logger, exchange, markets, start, end)
     assert (date_range.size > lookback), "Lookback %d is more than the date range %d. Exiting!"%(lookback,date_range.size)
 
-    # print('Price: %s'%back_data['OPEN'])
-    print('Starting budget: %d'%budget)
-    print('------------------------------------')
+    logger.info('Starting budget: %d'%budget)
+    logger.info('------------------------------------')
     budget_curr = budget
     position_curr = back_data['POSITION'].iloc[lookback - 1]
     date_labels = date_range.date
@@ -243,13 +262,13 @@ def backtest(exchange, markets, trading_strategy, start, end, budget, lookback, 
         # get order
         lookback_data = {feature: data[start: end] for feature, data in back_data.items()}
         order = trading_strategy(lookback_data, markets, budget_curr)
-        print('order: %s'%order.values)
+        logger.info('order: %s'%order.values)
 
         # evaluate new position based on order and budget
         price_curr = back_data['OPEN'].iloc[end]
         slippage = back_data['SLIPPAGE'].iloc[end - 1]
         position_last = back_data['POSITION'].iloc[end - 1]
-        (position_curr, budget_curr, order_loss) = execute_order(order, position_last, slippage, price_curr, budget_curr)
+        (position_curr, budget_curr, order_loss) = execute_order(logger, order, position_last, slippage, price_curr, budget_curr)
 
         # set info in back data
         back_data['POSITION'].iloc[end] = position_curr
@@ -274,24 +293,18 @@ def backtest(exchange, markets, trading_strategy, start, end, budget, lookback, 
                      'PnL                              : %s'%pnl_curr.values + '\n' + \
                      'Available funds on day %s: %0.2f'%(date_labels[end], budget_curr) + '\n' + \
                      'Portfolio value on day %s: %0.2f'%(date_labels[end], value_curr) + '\n' + \
-                     '------------------------------------'
-        print(status_str)
+                     '-----------------------------------------------------------------------------'
+        logger.info(status_str)
 
-    baseline_data = baseline(exchange, base_index, lookback, date_range)
+    baseline_data = baseline(logger, exchange, base_index, lookback, date_range)
     final_budget = budget_curr + (position_curr * close_curr).sum()
-    plot(back_data['DAILY_PNL'], back_data['TOTAL_PNL'],
+    plot(logger, back_data['DAILY_PNL'], back_data['TOTAL_PNL'],
          baseline_data['DAILY_PNL'], baseline_data['TOTAL_PNL'],
          budget, final_budget)
 
-    """
-    print(back_data['POSITION'])
-    print(back_data['ORDER'])
-    print(back_data['FILLED_ORDER'])
-    print(back_data['SLIPPAGE'])
-    """
-
 def analyze(exchange, markets, start, end):
-    (back_data, days) = load_data(exchange, markets, start, end)
+    logger = get_logger()
+    (back_data, days) = load_data(logger, exchange, markets, start, end)
     plt.close('all')
     f, plot_arr = plt.subplots(2, sharex=True)
     plot_arr[0].set_title('Open')
