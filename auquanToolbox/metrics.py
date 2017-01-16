@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 import pandas as pd
 from pandas.tseries.offsets import BDay
-from pythonToolbox.dataloader import data_available
+from auquanToolbox.dataloader import data_available
 import matplotlib.pyplot as plt
 
 def metrics(daily_pnl, total_pnl, baseline_data):

@@ -7,8 +7,8 @@ import csv
 import json
 import logging
 import datetime as dt
-from pythonToolbox.dataloader import load_data
-from pythonToolbox.resultviewer import loadgui
+from auquanToolbox.dataloader import load_data
+from auquanToolbox.resultviewer import loadgui
 import matplotlib.pyplot as plt
 
 

@@ -3,6 +3,10 @@ runLogs
 nasdaq
 nyse
 historicalData
+.pypirc
+auquanToolbox.egg-info
+build
+dist
 
 # Windows image file caches
 Thumbs.db

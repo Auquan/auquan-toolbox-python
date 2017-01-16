@@ -21,8 +21,8 @@ except:
     from tkinter import font as tkFont
     from tkinter import messagebox as tkMessageBox
 
-from pythonToolbox.metrics import metrics, baseline
-from pythonToolbox.dataloader import data_available
+from auquanToolbox.metrics import metrics, baseline
+from auquanToolbox.dataloader import data_available
 
 def loadgui(back_data, exchange, base_index, budget,logger):
 

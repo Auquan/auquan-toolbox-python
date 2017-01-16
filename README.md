@@ -2,7 +2,7 @@ Auquan(http://www.auquan.com) provides a backtesting toolbox to develop of your 
 
 Data is in the folder historical Data. We provide daily data for 2740 stocks listed on NASDAQ and 2690 stocks listed on NYSE. The full list of stocks is available in a text file in the respective folders.
 
-The modules are in the folder pythonToolbox. We also provide a sample file to demonstrate how to use the toolbox.
+The modules are in the folder auquanToolbox. We also provide a sample file to demonstrate how to use the toolbox.
 
 There are two functions in the sample file to modify: settings, and tradingstrategy.
 

@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import pandas as pd
 import numpy as np
-from pythonToolbox.toolbox import backtest
+from auquanToolbox.toolbox import backtest
 
 def settings():
     exchange = "nasdaq"           # Exchange to download data for (only nasdaq for now)
@@ -51,34 +51,7 @@ def trading_strategy(lookback_data):
 
     ##YOUR CODE HERE
 
-    period1 = 120
-    period2 = 30
-
-    markets_close = lookback_data['CLOSE']
-    market_open = lookback_data['OPEN']
-    avg_p1 = markets_close[-period1 : ].sum() / period1
-    avg_p2 = markets_close[-period2 : ].sum() / period2
-
-    sdev_p1 = np.std(markets_close[-period1 : ], axis=0)
-
-    difference = avg_p1 - avg_p2
-    deviation = pd.Series(0, index=lookback_data['POSITION'].columns)
-    criteria_1 = np.abs(difference)>sdev_p1
-    criteria_2 = np.sign(difference) == np.sign(lookback_data['POSITION'])
-    deviation[criteria_1] = difference
-    deviation[criteria_2] = difference
-
-
-    total_deviation = np.absolute(deviation).sum()
-    if total_deviation==0:
-        return order
-    else:  
-        order['WEIGHTS']= np.absolute(deviation/total_deviation)
-        order['SIGNAL'] = np.sign(deviation)
-        # order['PRICE'][order['SIGNAL']>0] = (avg_p1-sdev_p1)[order['SIGNAL']>0]
-        # order['PRICE'][order['SIGNAL']<0] = (avg_p1+sdev_p1)[order['SIGNAL']<0]
-
-        return order
+    return order
 
 if __name__ == '__main__':
     [exchange, markets, date_start, date_end, lookback] = settings()
