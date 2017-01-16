@@ -1,9 +1,25 @@
 #About Auquan Toolbox
 [Auquan](http://www.auquan.com) provides a backtesting toolbox to develop of your trading algorithms. The toolbox is free and open source which you can use to create and backtest strategies
 
-Data is in the folder historical Data. We provide daily data for 2740 stocks listed on NASDAQ and 2690 stocks listed on NYSE. The full list of stocks is available in a text file in the respective folders.
+We provide data for more than 500 stocks listed on NASDAQ. Most of them are part of S&P. The code below will automatically download the stocks data for you. The full list of stocks is [here](https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/nasdaq/nasdaq.txt)
 
 The modules are in the folder auquanToolbox. We also provide sample strategies to demonstrate how to use the toolbox.
+
+#Installation
+There are multiple ways to install this toolbox.
+
+The easiest way is via pip. Just run the following command:
+`pip install -U auquanToolbox`
+It will also install all the dependencies. Now you can just call `import auquanToolbox` within your code to import the toolbox. If you want to run a sample strategy, find the path for the strategy (probably in bin folder), and run `python {path_to_strategy}`.
+
+You can also choose to clone the master branch of this repo or download the code from this repo. After you do that, navigate to the root folder of this project and run `python setup.py install`. This will also install all the dependencies, and you are good to run an existing strategy or create a new one.
+
+###Prerequisites
+- Python 2.7 (Python 3 will be supported soon)
+- numpy
+- pandas
+- matplotlib
+
 
 #How to write a trading strategy
 Follow the template provided in TradingStrategyTemplate.py.  
@@ -11,11 +27,14 @@ Basically, there are two functions in the sample file to modify: settings, and t
 
 ##settings:
 This function takes no arguments and has to return the following parameters:
-exchange = "nasdaq"         # Exchange to download data for
-markets = ['AAPL','ALL']    # Stocks to download data for
-date_start = '2016-11-01'   # Date to start the backtest
-date_end = '2016-11-30'     # Date to end the backtest
-lookback = 90               # The number of days of historical data you want to use in each iteration of trading system. On any day t, your algorithm will have historical data from t-lookback to t-1 day
+
+| Parameter | Example value | Description |
+| --------- | ------------- | ----------- |
+|exchange | "nasdaq"   |       Exchange to download data for. Right now we only support nasdaq
+|markets | ['AAPL','ALL']|     Stocks to download data for. Leave empty to get all stocks
+|date_start | '2016-11-01'|    Date to start the backtest
+|date_end | '2016-11-30'   |   Date to end the backtest
+|lookback | 90              |  The number of days of historical data you want to use in each iteration of trading system. On any day t, your algorithm will have historical data from t-lookback to t-1 day
 
 ##trading_strategy:
 This function is called each day of the backtesting period to analyze prior data and make trading decisison.  
