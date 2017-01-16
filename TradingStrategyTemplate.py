@@ -5,9 +5,13 @@ from pythonToolbox.toolbox import backtest
 
 def settings():
     exchange = "nasdaq"           # Exchange to download data for (only nasdaq for now)
-    markets = ['A','AAPL','IBM','GOOG','C']
-        # Stocks to download data for. 
-                                # Leave blank to download all stocks for the exchange (~900 stocks)
+    markets = ['A','AAPL','IBM','GOOG','C'] # Stocks to download data for. 
+    # markets = [] Leave empty array to download all stocks for the exchange (~900 stocks)
+    # To have a look at all possible stocks go here: 
+    # https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/nasdaq/nasdaq.txt
+    # Based on data avalaible, some markets might be dropped. Only the non dropped markets will appear
+    # in lookback_data for trading_strategy
+
     date_start = '2015-01-03'   # Date to start the backtest
     date_end = '2016-11-06'     # Date to end the backtest
     lookback = 120               # Number of days you want historical data for
@@ -35,7 +39,7 @@ def trading_strategy(lookback_data):
     signal, price and quantity as columns
     order['SIGNAL']:buy (+1), hold (0) or sell (-1) trading signals for all securities in markets[]
     order['PRICE']: The price where you want to trade each security. Buy orders are executed at or below the price and sell orders are executed at or above the price
-    order['QUANTITY']: The quantity of each stock you want to trade.
+    order['WEIGHTS']: The normalized set of weights for the markets
     System will buy the specified quantity of stock if it's price <= price specified here
     System will sell the specified quantity of a stock if it's price >= price specified here
     """
