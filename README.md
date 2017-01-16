@@ -39,7 +39,7 @@ This function takes no arguments and has to return the following parameters:
 ##trading_strategy:
 This function is called each day of the backtesting period to analyze prior data and make trading decisison.  
 
-It takes lookback_data as argument, which is historical data for the past "lookback"(as defined in settings) number of days. It is a dictionary of following features:
+It takes `lookback_data` as argument, which is historical data for the past "lookback"(as defined in settings) number of days. It is a dictionary of following features:
 
 | Parameter | Description | Dimensions (rows x columns) |
 | --- | --- | --- |
@@ -59,7 +59,7 @@ It takes lookback_data as argument, which is historical data for the past "lookb
      
 Any feature data can be accessed as `lookback_data['OPEN']`. The output is a pandas dataframe with dates as the index (row) and markets as columns. 
     
-The function has to return a pandas dataframe with markets you are trading as index(row) and signal, price and weights as columns  
+The function has to return a pandas dataframe with markets you are trading as index(row) and SIGNAL, PRICE and WEIGHTS as columns  
 
 | Key Name | Description |
 | --- | --- |
