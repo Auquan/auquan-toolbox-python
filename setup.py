@@ -11,7 +11,7 @@ setup(name='auquanToolbox',
       author_email='info@auquan.com',
       license='MIT',
       packages=['auquanToolbox'],
-      scripts=['TradingStrategyTemplate.py', 'MeanReversion.py', 'BollingerBand.py'],
+      scripts=['TradingStrategyTemplate.py'],
       include_package_data = True,
 
       install_requires=[
