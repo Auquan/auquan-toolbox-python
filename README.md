@@ -8,14 +8,12 @@ We provide daily price data for 600 stocks listed on NASDAQ which are (or were) 
 
 The modules are in the folder auquanToolbox. We also provide sample strategies to demonstrate how to use the toolbox.
 
-Separately, we are also holding a competition for quants [Quant Quest](quant-quest.auquan.com). Register on the site to participate.
-
 ## Table of Contents
 1. [Installation](https://github.com/Auquan/auquan-toolbox-python#installation)
 2. [How to write a trading strategy?](https://github.com/Auquan/auquan-toolbox-python#how-to-write-a-trading-strategy)
 3. [Backtesting](https://github.com/Auquan/auquan-toolbox-python#backtesting)
 
-#Installation
+#1. Installation
 ### Python 2.7
 You need Python 2.7 (Python 3 will be supported later) to run this toolbox. There are several distributions of Python 2.7 that can be used. For an easy installation process, we recommend Anaconda since it will reliably install all the necessary dependencies. Download [Anaconda](http://continuum.io/downloads) and follow the instructions on the [installation page](http://docs.continuum.io/anaconda/install). Once you have Python, you can then install the toolbox.
 
@@ -35,7 +33,7 @@ You can also choose to clone the master branch of this repo or download the code
 - matplotlib
 
 
-#How to write a trading strategy
+#2. How to write a trading strategy
 Follow the template provided in TradingStrategyTemplate.py.  
 Basically, there are two functions in the sample file to modify: settings, and tradingstrategy.
 
@@ -71,9 +69,7 @@ It takes `lookback_data` as argument, which is historical data for the past "loo
 |FUNDS 		|cash available to buy stocks	|Lookback x 1
 |VALUE 		|total portfolio value		|Lookback x 1
      
-Any feature data can be accessed as `lookback_data['OPEN']`. The output is a pandas dataframe with dates as the index (row) and markets as columns. 
-    
-**The function has to return a pandas dataframe with markets you are trading as index(row) and SIGNAL, PRICE and WEIGHTS as columns**  
+Any feature data can be accessed as `lookback_data['OPEN']`. The output is a pandas dataframe with dates as the index (row) and markets as columns. **The function has to return a pandas dataframe with markets you are trading as index(row) and SIGNAL, PRICE and WEIGHTS as columns.**
 
 | Key Name | Description |
 | --- | --- |
@@ -82,7 +78,7 @@ Any feature data can be accessed as `lookback_data['OPEN']`. The output is a pan
 | PRICE	| *Optional.* If specified, buy orders are executed only if next day's open price is equal or lower than the price and sell orders are executed if it is equal or higher than the price. Set as 0 if you don't want to specify a price.
 
     
-#Backtesting:
+#3. Backtesting:
 The system is run by calling the command  
 `backtest(exchange, markets, trading_strategy, date_start, date_end, lookback)`  
 You can set an optional verbose=True to see more details  
