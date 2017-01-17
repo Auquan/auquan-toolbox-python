@@ -9,9 +9,9 @@ We provide daily price data for 600 stocks listed on NASDAQ which are (or were) 
 The modules are in the folder auquanToolbox. We also provide sample strategies to demonstrate how to use the toolbox.
 
 ## Table of Contents
-1. [Installation](https://github.com/Auquan/auquan-toolbox-python#installation)
-2. [How to write a trading strategy?](https://github.com/Auquan/auquan-toolbox-python#how-to-write-a-trading-strategy)
-3. [Backtesting](https://github.com/Auquan/auquan-toolbox-python#backtesting)
+1. [Installation](https://github.com/Auquan/auquan-toolbox-python#1-installation)
+2. [How to write a trading strategy?](https://github.com/Auquan/auquan-toolbox-python#2-how-to-write-a-trading-strategy)
+3. [Backtesting](https://github.com/Auquan/auquan-toolbox-python#3-backtesting)
 
 #1. Installation
 ### Python 2.7
