@@ -1,7 +1,7 @@
 #About Auquan Toolbox
-[Auquan](http://www.auquan.com) provides a backtesting toolbox to develop of your trading algorithms. The toolbox is free and open source which you can use to create and backtest strategies
+[Auquan](http://www.auquan.com) provides a backtesting toolbox to develop your trading algorithms. The toolbox is free and open source which you can use to create and backtest strategies
 
-We provide data for more than 500 stocks listed on NASDAQ. Most of them are part of S&P. The code below will automatically download the stocks data for you. The full list of stocks is [here](https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/nasdaq/nasdaq.txt)
+We provide daily price data for 600 stocks listed on NASDAQ which are (or were) a part of S&P500 since 2001. The code below will automatically download the stocks data for you. The full list of stocks is [here](https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/nasdaq/nasdaq.txt)
 
 The modules are in the folder auquanToolbox. We also provide sample strategies to demonstrate how to use the toolbox.
 
@@ -31,7 +31,7 @@ This function takes no arguments and has to return the following parameters:
 | Parameter | Example value | Description |
 | --------- | ------------- | ----------- |
 |exchange | "nasdaq"   |       Exchange to download data for. Right now we only support nasdaq
-|markets | ['AAPL','ALL']|     Stocks to download data for. Leave empty to get all stocks
+|markets | ['AAPL','ALL']|     Stocks to download data for. Leave empty([]) to load data for all stocks
 |date_start | '2016-11-01'|    Date to start the backtest
 |date_end | '2016-11-30'   |   Date to end the backtest
 |lookback | 90              |  The number of days of historical data you want to use in each iteration of trading system. On any day t, your algorithm will have historical data from t-lookback to t-1 day
@@ -58,25 +58,31 @@ It takes `lookback_data` as argument, which is historical data for the past "loo
 |VALUE 		|total portfolio value		|Lookback x 1
      
 Any feature data can be accessed as `lookback_data['OPEN']`. The output is a pandas dataframe with dates as the index (row) and markets as columns. 
-    
-The function has to return a pandas dataframe with markets you are trading as index(row) and SIGNAL, PRICE and WEIGHTS as columns  
+    
+**The function has to return a pandas dataframe with markets you are trading as index(row) and SIGNAL, PRICE and WEIGHTS as columns**  
 
 | Key Name | Description |
 | --- | --- |
-| SIGNAL	| buy (+1), hold (0) or sell (-1) trading signals for all securities in markets[]
-| PRICE	| The price where you want to trade each security. Buy orders are executed at or below the price and sell orders are executed at or above the price
-| WEIGHTS | The quantity of each stock you want to trade.
+| SIGNAL	| Long (+1), short (-1) or no position (0) for all securities in markets[]
+| WEIGHTS | The weight of each stock in your portfolio.
+| PRICE	| *Optional.* If specified, buy orders are executed only if next day's open price is equal or lower than the price and sell orders are executed if it is equal or higher than the price. Set as 0 if you don't want to specify a price.
+
     
 #Backtesting:
 The system is run by calling the command  
 `backtest(exchange, markets, trading_strategy, date_start, date_end, lookback)`  
 You can set an optional verbose=True to see more details  
 
-Execution happens at the day's open price. When executed, the system checks if you have enough funds to buy or sell. Entire buy order is cancelled if if order_value > cash available to buy. Sell order is cancelled if cost_to_trade > cash available.
-The system will buy the specified quantity of stock if it's price <= price specified here and sell the specified quantity of a stock if it's price >= price specified here.
-Currently, there is no margin requirement for short selling.
+Execution happens at the day's open price. When executed, the system will automatically calculate the quantity of each stock to buy and sell to maintain the portfolio weights specified by you. For example if you are trading AAPL and GOOG, your portfolio value is 1,000,000 and your order is:
+| |SIGNAL|WEIGHTS|PRICE|
+| AAPL| 1 | 0.65 | 0 |
+| GOOG|-1 | 0.35 | 0 |
 
-**Cost to Trade**: The two main contributors to trading costs are commissions and slippage. Commissions are fees charged by the exchange and the broker. Slippage is the price at which you expected or placed your order and the price at which your order was actually filled.  
+The system will buy $650,000 worth of Apple shares and sell $350,000 worth of Google shares. If your order remains the same next day and your portfolio value increases to 1,100,000, the system will automatically rebalance to long $715,000 worth of Apple shares and short $385,000 of Google shares. 
+
+If no price is specified(as in this example), order exection happens at stock's open price. If you specify a price, the system will buy the specified quantity of stock if it's open price <= price specified here and sell the specified quantity of a stock if it's price >= price specified here. No action is taken if the price criteria is not met. 
+
+**Cost to Trade**: The system automatically accounts for trading costs. We apply a commssion (*fees charged by the exchange and the broker*) and slippage (*the difference inprice at which you placed your order and the price at which you actually traded.*)  
 We use 0.10 per stock as commission and 5% of the daily range slippage((HIGH - LOW) * 0.05)  
 Total cost to trade = 0.10 + (HIGH - LOW) * 0.05  
 
