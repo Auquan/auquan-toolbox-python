@@ -74,7 +74,9 @@ The system is run by calling the command
 You can set an optional verbose=True to see more details  
 
 Execution happens at the day's open price. When executed, the system will automatically calculate the quantity of each stock to buy and sell to maintain the portfolio weights specified by you. For example if you are trading AAPL and GOOG, your portfolio value is 1,000,000 and your order is:
-| |SIGNAL|WEIGHTS|PRICE|
+
+| Market |SIGNAL|WEIGHTS|PRICE|
+|---|---|---|---|
 | AAPL| 1 | 0.65 | 0 |
 | GOOG|-1 | 0.35 | 0 |
 
