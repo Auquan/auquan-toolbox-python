@@ -1,3 +1,6 @@
+**If you are looking to participate in [Quant Quest](quant-quest.auquan.com), our competition to find the best quant, please register [here](quant-quest.auquan.com).**
+
+
 #About Auquan Toolbox
 [Auquan](http://www.auquan.com) provides a backtesting toolbox to develop your trading algorithms. The toolbox is free and open source which you can use to create and backtest strategies
 
@@ -5,16 +8,27 @@ We provide daily price data for 600 stocks listed on NASDAQ which are (or were) 
 
 The modules are in the folder auquanToolbox. We also provide sample strategies to demonstrate how to use the toolbox.
 
+Separately, we are also holding a competition for quants [Quant Quest](quant-quest.auquan.com). Register on the site to participate.
+
+## Table of Contents
+1. [Installation](https://github.com/Auquan/auquan-toolbox-python#installation)
+2. [How to write a trading strategy?](https://github.com/Auquan/auquan-toolbox-python#how-to-write-a-trading-strategy)
+3. [Backtesting](https://github.com/Auquan/auquan-toolbox-python#backtesting)
+
 #Installation
+### Python 2.7
+You need Python 2.7 (Python 3 will be supported later) to run this toolbox. There are several distributions of Python 2.7 that can be used. For an easy installation process, we recommend Anaconda since it will reliably install all the necessary dependencies. Download [Anaconda](http://continuum.io/downloads) and follow the instructions on the [installation page](http://docs.continuum.io/anaconda/install). Once you have Python, you can then install the toolbox.
+
+### Auquan Toolbox
 There are multiple ways to install this toolbox.
 
 The easiest way is via pip. Just run the following command:
 `pip install -U auquanToolbox`
-It will also install all the dependencies. Now you can just call `import auquanToolbox` within your code to import the toolbox. If you want to run a sample strategy, find the path for the strategy (probably in bin folder), and run `python {path_to_strategy}`.
+It will also install all the dependencies. Now you can just call `import auquanToolbox` within your code to import the toolbox. If you want to run a  strategy, find the path for the strategy, and run `python {path_to_strategy}`.
 
 You can also choose to clone the master branch of this repo or download the code from this repo. After you do that, navigate to the root folder of this project and run `python setup.py install`. This will also install all the dependencies, and you are good to run an existing strategy or create a new one.
 
-###Prerequisites
+###Dependencies
 - Python 2.7 (Python 3 will be supported soon)
 - numpy
 - pandas
