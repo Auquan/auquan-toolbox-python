@@ -34,7 +34,7 @@ You can also choose to clone the master branch of this repo or [download](https:
 
 
 #2. How to write a trading strategy
-Follow the template provided in TradingStrategyTemplate.py.  
+Follow the template provided in TradingStrategyTemplate.py. For starters, we have provided some [sample strategies here](https://github.com/Auquan/sample-strategies).  
 Basically, there are two functions in the sample file to modify: settings, and tradingstrategy.
 
 ##settings:
