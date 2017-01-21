@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import pandas as pd
 import numpy as np
-from auquanToolbox.toolbox import backtest
+import auquanToolbox as at
 
 def settings():
     exchange = "nasdaq"           # Exchange to download data for (only nasdaq for now)
@@ -55,4 +55,4 @@ def trading_strategy(lookback_data):
 
 if __name__ == '__main__':
     [exchange, markets, date_start, date_end, lookback] = settings()
-    backtest(exchange, markets, trading_strategy, date_start, date_end, lookback)#,verbose=True)
+    at.backtest(exchange, markets, trading_strategy, date_start, date_end, lookback)#,verbose=True)
