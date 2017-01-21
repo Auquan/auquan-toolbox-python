@@ -7,6 +7,7 @@ historicalData
 auquanToolbox.egg-info
 build
 dist
+test*.py
 
 # Windows image file caches
 Thumbs.db
