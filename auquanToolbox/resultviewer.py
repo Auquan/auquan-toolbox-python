@@ -43,7 +43,7 @@ def loadgui(back_data, exchange, base_index, budget,logger):
 	daily_pnl = back_data['DAILY_PNL']*100/budget
 	total_pnl = back_data['TOTAL_PNL']*100/budget
 
-	baseline_data = baseline(exchange, base_index, total_pnl.index,logger)
+	baseline_data = baseline(exchange, base_index, total_pnl.index, logger)
 	stats = metrics(daily_pnl, total_pnl, baseline_data)
 
 	daily_return = daily_pnl.sum(axis=1)
