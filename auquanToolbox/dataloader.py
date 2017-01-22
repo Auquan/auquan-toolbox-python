@@ -137,7 +137,6 @@ def load_data(exchange, markets, start, end, lookback, budget, logger, random=Fa
 
         dropped_dates = date_range[dates_to_drop]
         date_range = date_range[~dates_to_drop]
-        print(dropped_dates)
         for feature in features:
             back_data[feature] = back_data[feature].drop(dropped_dates)
 
@@ -152,3 +151,92 @@ def load_data(exchange, markets, start, end, lookback, budget, logger, random=Fa
     back_data['MARGIN'] = pd.Series(0, index=date_range)
 
     return back_data, date_range
+
+def load_data_nologs(exchange, markets, start, end, lookback=2):
+
+    # because there are some holidays adding some cushion to lookback
+    try:
+        dates = [pd.to_datetime(start)-BDay(lookback* 1.10), pd.to_datetime(end)]
+    except ValueError:
+        raise ValueError("%s or %s is not valid date. Please check settings!"%(start, end))
+
+    assert(dates[1]>dates[0]),"Start Date is after End Date"
+
+    dir_name = '%s/'%exchange.lower()
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+
+    file_name = '%s%s.txt'%(dir_name, exchange.lower())
+    if not os.path.exists(file_name):
+        url = 'https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/%s'%(file_name)
+        status = urlopen(url).getcode()
+        if status == 200:
+            urlretrieve(url, file_name)
+        else:
+            print('File not found. Please check exchange name!')
+
+    if len(markets)==0:
+        file_name = '%s/%s.txt'%(exchange.lower(), exchange.lower())
+        
+        markets = [line.strip() for line in open(file_name)]
+ 
+
+    markets = [m.upper() for m in markets]
+    features = ['OPEN', 'CLOSE', 'HIGH', 'LOW', 'VOLUME']
+    date_range = pd.date_range(start=dates[0], end=dates[1], freq='B')
+    back_data = {}
+    for feature in features:
+        back_data[feature] = pd.DataFrame(index=date_range, columns=markets)
+    dir_name = '%s/historicalData/'%exchange.lower()
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+    for m in markets:
+        file_name = '%s%s.csv'%(dir_name, m.lower())
+        if not os.path.exists(file_name):
+            url = 'https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/%s/historicalData/%s.csv'%(exchange.lower(), m.lower())
+            status = urlopen(url).getcode()
+            if status == 200:
+                urlretrieve(url, file_name)
+            else:
+                print('File not found. Please check settings!')
+    
+    market_to_drop = []
+    for market in markets:
+        csv = pd.read_csv('%s/historicalData/%s.csv'%(exchange.lower(), market.lower()), index_col=0)
+        csv.index = pd.to_datetime(csv.index)
+        csv.columns = [col.upper() for col in csv.columns]
+        csv = csv.reindex(index=csv.index[::-1])
+        features = [col.upper() for col in csv.columns]
+        market_first_date = csv.index[0]
+        if (market_first_date > (dates[0]-BDay(1)+BDay(1))):
+            market_to_drop.append(market)
+            continue
+        market_last_date = csv.index[-1]
+        if (market_last_date < (dates[0] - BDay(1) + BDay(1))):
+            market_to_drop.append(market)
+            continue
+
+        back_fill_data = False
+        if market_last_date in date_range:
+            back_fill_data = True
+
+        for feature in features:
+            back_data[feature][market] = csv[feature][date_range]
+            if back_fill_data:
+                back_data[feature].loc[market_last_date:date_range[-1], market] = back_data[feature].at[market_last_date, market]
+
+        for m in market_to_drop: 
+            markets.remove(m) 
+
+        for feature in features:
+            back_data[feature].drop(market_to_drop, axis=1, inplace=True)
+        dates_to_drop = pd.Series(False, index=date_range)
+        for feature in features:
+            dates_to_drop |= pd.isnull(back_data[feature]).any(axis=1)
+
+        dropped_dates = date_range[dates_to_drop]
+        date_range = date_range[~dates_to_drop]
+        for feature in features:
+            back_data[feature] = back_data[feature].drop(dropped_dates)
+
+    return back_data

@@ -20,11 +20,11 @@ You need Python 2.7 (Python 3 will be supported later) to run this toolbox. Ther
 ### Auquan Toolbox
 There are multiple ways to install this toolbox.
 
-The easiest way is via pip. Just run the following command:
+The easiest way and the most recommended way is via pip. Just run the following command:
 `pip install -U auquanToolbox`
-It will also install all the dependencies. Now you can just call `import auquanToolbox` within your code to import the toolbox. If you want to run a  strategy, find the path for the strategy, and run `python {path_to_strategy}`.
+It will also install all the dependencies. Now you can just call `import auquanToolbox` within your code to import the toolbox. If you want to run a  strategy, find the path for the strategy, and run `python {path_to_strategy}`. If we publish any updates to the toolbox, the same command `pip install -U auquanToolbox` will also automatically get the new version of the toolbox.
 
-You can also choose to clone the master branch of this repo or download the code from this repo. After you do that, navigate to the root folder of this project and run `python setup.py install`. This will also install all the dependencies, and you are good to run an existing strategy or create a new one.
+You can also choose to clone the master branch of this repo or [download](https://github.com/Auquan/auquan-toolbox-python/archive/master.zip) the code from this repo. After you do that, navigate to the root folder of this project and run `python setup.py install`. This will also install all the dependencies, and you are good to run an existing strategy or create a new one. You would have to redownload the toolbox code, if we published any changes to the toolbox.
 
 ###Dependencies
 - Python 2.7 (Python 3 will be supported soon)
@@ -34,7 +34,7 @@ You can also choose to clone the master branch of this repo or download the code
 
 
 #2. How to write a trading strategy
-Follow the template provided in TradingStrategyTemplate.py.  
+Follow the template provided in TradingStrategyTemplate.py. For starters, we have provided some [sample strategies here](https://github.com/Auquan/sample-strategies).  
 Basically, there are two functions in the sample file to modify: settings, and tradingstrategy.
 
 ##settings:
