@@ -152,6 +152,7 @@ def load_data(exchange, markets, start, end, lookback, budget, logger, random=Fa
 
     return back_data, date_range
 
+# TODO: Refactor this
 def load_data_nologs(exchange, markets, start, end, lookback=2):
 
     # because there are some holidays adding some cushion to lookback
