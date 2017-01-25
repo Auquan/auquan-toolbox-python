@@ -9,10 +9,11 @@ import logging
 import datetime as dt
 from auquanToolbox.dataloader import load_data
 from auquanToolbox.resultviewer import loadgui
+from auquanToolbox.metrics import metrics, baseline
 import matplotlib.pyplot as plt
 
 
-def backtest(exchange, markets, trading_strategy, date_start, date_end, lookback, budget=1000000, verbose=False, base_index='INX', json=False):
+def backtest(exchange, markets, trading_strategy, date_start, date_end, lookback, budget=1000000, verbose=False, base_index='SPX', trading_costs = True, json=False):
 
     logger = get_logger()
 
@@ -104,7 +105,7 @@ def backtest(exchange, markets, trading_strategy, date_start, date_end, lookback
         position_last = back_data['POSITION'].iloc[end - 1].astype(int)
         value = budget_curr + margin_curr + (position_last * open_curr).sum()
         order['QUANTITY'] = getquantity(order, price_curr, slippage,value,position_last, logger)
-        (position_curr, budget_curr, margin_curr, cost_to_trade) = execute_order(order, position_last, slippage, price_curr, budget_curr,margin_curr,logger)
+        (position_curr, budget_curr, margin_curr, cost_to_trade) = execute_order(order, position_last, slippage, price_curr, budget_curr,margin_curr,logger, trading_costs)
 
         # set info in back data
         back_data['POSITION'].iloc[end] = position_curr
@@ -121,10 +122,10 @@ def backtest(exchange, markets, trading_strategy, date_start, date_end, lookback
         back_data['FUNDS'].iloc[end] = budget_curr
 
         #funds used as margin
-        back_data['MARGIN'].iloc[end] = margin_curr
+        back_data['MARGIN'].iloc[end] = -(position_curr[position_curr<0] * close_curr[position_curr<0]).sum()
 
         #portfolio value
-        value_curr = budget_curr + margin_curr + (position_curr[position_curr>0] * close_curr[position_curr>0]).sum()
+        value_curr = budget_curr + margin_curr+ (margin_curr - back_data['MARGIN'].iloc[end]) + (position_curr[position_curr>0] * close_curr[position_curr>0]).sum()
         back_data['VALUE'].iloc[end] = value_curr
 
         #cost
@@ -152,17 +153,19 @@ def backtest(exchange, markets, trading_strategy, date_start, date_end, lookback
             
     logger.info('Final Portfolio Value: %0.2f'%value_curr)
     #writejson(back_data,budget)
-    writecsv({feature: data[start_index-1: end+1] for feature, data in back_data.items()},budget)
 
     if json:
-        return writejson({feature: data[start_index-1: end+1] for feature, data in back_data.items()},budget)
+        if base_index:
+            baseline_data = baseline(exchange, base_index, date_range, logger)
+            return writejson({feature: data[start_index-1: end+1] for feature, data in back_data.items()},budget,{feature: data[start_index-1: end+1] for feature, data in baseline_data.items()}, base_index)
+        else:
+            return writejson({feature: data[start_index-1: end+1] for feature, data in back_data.items()},budget,{}, base_index)
+    else:
+        writecsv({feature: data[start_index-1: end+1] for feature, data in back_data.items()},budget)
 
     logger.info('Plotting Results...')
 
     loadgui({feature: data[start_index-1: end+1] for feature, data in back_data.items()}, exchange, base_index, budget,logger)
-
-        #back_data['DAILY_PNL'][date_start:date_end], back_data['TOTAL_PNL'][date_start:date_end], back_data['POSITION'][date_start:date_end], exchange, base_index, budget,logger)
-
 
 def commission():
     return 0.1
@@ -181,99 +184,28 @@ def getquantity(order, price, slippage,value,position,logger):
         new_portfolio_value = 0
         quantity = - position
         quantity.fillna(0)
-        print(quantity)
     return quantity.astype(int)
 
-def execute_order(order, position, slippage, price, budget, margin, logger):
+def execute_order(order, position, slippage, price, budget, margin, logger, trading_costs):
 
     trade_criteria = (np.sign(order['QUANTITY'])*price[order.index] <= np.sign(order['QUANTITY'])*order['PRICE'])
     trade_criteria[np.sign(order['QUANTITY'])*price[order.index] > np.sign(order['QUANTITY'])*order['PRICE']] = order['PRICE'] ==0
     
     position_curr = position.copy()
+    total_commission = 0*position_curr
+    adj_slippage = 0*position_curr
+
     position_curr[trade_criteria] += order['QUANTITY'][trade_criteria]
     margin_curr = -(position_curr[position_curr < 0] * price[position_curr < 0]).sum()
-    total_commission = np.abs(position_curr - position) * commission()
-    slippage_adjusted_price = price + (np.sign(order['QUANTITY'])*slippage)
-    slippage_adjusted_price[slippage_adjusted_price < 0] = 0
-    adj_slippage = np.abs(position_curr - position)*np.abs(price - slippage_adjusted_price)
+    if trading_costs:
+        total_commission = np.abs(position_curr - position) * commission()
+        slippage_adjusted_price = price + (np.sign(order['QUANTITY'])*slippage)
+        slippage_adjusted_price[slippage_adjusted_price < 0] = 0
+        adj_slippage = np.abs(position_curr - position)*np.abs(price - slippage_adjusted_price)
     margin_call = margin_curr-margin
     order_value = ((position_curr - position) * price).sum() + margin_call
     cost_to_trade = total_commission + adj_slippage
     return position_curr, budget - order_value - margin_call - cost_to_trade.sum(), margin_curr, cost_to_trade
-
-    # (position_after_sell, budget_after_sell, margin_after_sell, cost_to_sell) = execute_sell(order, position, slippage, price, budget,margin,logger)
-    # if budget_after_sell <= 0:
-    #     logger.info(order['SIGNAL']*order['QUANTITY'])
-    #     logger.info('You do not have any funds to trade! Buy Order cancelled.')
-    #     return position_after_sell, budget_after_sell, margin_after_sell, cost_to_sell
-    # else:
-    #     (position_after_buy, budget_after_buy, margin_after_buy, cost_to_buy) = execute_buy(order, position_after_sell, slippage, price, budget_after_sell, margin_after_sell,logger)
-    #     return position_after_buy, budget_after_buy, margin_after_buy, cost_to_sell+cost_to_buy
-  
-
-def execute_sell(order, position, slippage, price, budget,margin,logger):
-    position_curr = position.copy()
-    trade_criteria_1 = order['SIGNAL'] < 0
-    trade_criteria_2 = (order['PRICE'] <= price[order.index])
-    trade_criteria_2[order['PRICE'] > price[order.index]] = order['PRICE'] ==0
-    margin_call = 0
-
-    position_curr[trade_criteria_1 & trade_criteria_2] -= order['QUANTITY'][trade_criteria_1 & trade_criteria_2]
-
-    #identify shortsell orders and calculate margin
-    margin_call = -(position_curr[position_curr < 0] * price[position_curr < 0]).sum()
-    # if (margin_call-margin)  > budget:
-    #     logger.info(order['SIGNAL']*order['QUANTITY'])
-    #     logger.info('Short Sell order value exceeds available funds! Short Sell order cancelled.')
-    #     position_curr[ position_curr < 0] = position[ position_curr < 0]
-    #     margin_call = -(position_curr[position_curr < 0] * price[position_curr < 0]).sum()*margin_perc()
-
-    adj_commission = np.abs(position_curr - position) * commission()
-    slippage_adjusted_price = price - slippage
-    slippage_adjusted_price[slippage_adjusted_price < 0] = 0
-    adj_slippage = np.abs(position_curr - position)*(price - slippage_adjusted_price)
-    order_value = (np.abs(position_curr - position) * price).sum()
-   
-    cost_to_sell = adj_commission + adj_slippage
-    return position_curr, budget + (order_value - (margin_call-margin)) - cost_to_sell.sum(), margin_call, cost_to_sell
-
-def execute_buy(order, position, slippage, price, budget, margin,logger):
-    position_curr = position.copy()
-    trade_criteria_1 = order['SIGNAL'] > 0
-    trade_criteria_2 = (order['PRICE'] >= price[order.index])
-    trade_criteria_2[order['PRICE'] < price[order.index]] = order['PRICE'] ==0
-    margin_call = 0
-
-    position_curr[trade_criteria_1 & trade_criteria_2] += order['QUANTITY'][trade_criteria_1 & trade_criteria_2]
-    
-    #identify shortsell orders and calculate margin
-    margin_call = -(position_curr[position_curr < 0] * price[position_curr < 0]).sum()
-
-    adj_commission = (position_curr-position) * commission()
-    adj_slippage = ((position_curr-position) * slippage)
-    order_value = ((position_curr-position) * price).sum()
-    total_commission=adj_commission.sum()
-    total_slippage = adj_slippage.sum()
-
-    #check if you can execute buy orders
-    if ((order_value - (margin-margin_call)) + total_commission + total_slippage) >= budget:
-        logger.info(order['SIGNAL']*order['QUANTITY'])
-        logger.info('Buy order exceeds available funds! Buy order cancelled.')
-        position_curr[ trade_criteria_1 & position_curr > 0] = position[ trade_criteria_1 & position_curr > 0]
-        adj_commission = (position_curr-position) * commission()
-        adj_slippage = ((position_curr-position) * slippage)
-        order_value = ((position_curr-position) * price).sum()
-        total_commission=adj_commission.sum()
-        total_slippage = adj_slippage.sum()
-        margin_call = -(position_curr[position_curr < 0] * price[position_curr < 0]).sum()*margin_perc()
-
-    #check if you can execute order to buyback short sells
-    if ((order_value - (margin-margin_call)) + total_commission + total_slippage) >= budget:
-        logger.info('Not enough funds to Buy! Complete Buy Order cancelled')
-        return position, budget, margin, 0*position
-    else:
-        cost_to_buy = adj_commission + adj_slippage
-        return position_curr, budget - (order_value - (margin-margin_call)) - total_commission - total_slippage, margin_call, cost_to_buy
 
 def get_logger():
     logger_name = dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
@@ -330,17 +262,20 @@ def writecsv(back_data,budget):
     #     writer.writerow(['%s PnL'%stock]+back_data['DAILY_PNL'][stock].values.tolist())
     csv_file.close()
 
-def writejson(back_data,budget):
+def writejson(back_data,budget,baseline_data,base_index):
 
     daily_return = back_data['DAILY_PNL']*100/budget
     total_return = back_data['TOTAL_PNL']*100/budget
+    stats = metrics(daily_return, total_return, baseline_data,base_index)
 
     d = {'dates':back_data['DAILY_PNL'].index.format(),\
          'daily_pnl':daily_return.sum(axis=1).values.tolist(),\
          'total_pnl':total_return.sum(axis=1).values.tolist(),\
          'stocks':back_data['DAILY_PNL'].columns.tolist(),\
          'stock_pnl':daily_return.values.tolist(),\
-         'stock_position':back_data['POSITION'].values.tolist()}
+         'stock_position':back_data['POSITION'].values.tolist(),\
+         'metrics':stats.keys(),\
+         'metrics_values':stats.values()}
     return d;
 
 
