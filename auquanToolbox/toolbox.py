@@ -12,9 +12,15 @@ from auquanToolbox.resultviewer import loadgui
 import matplotlib.pyplot as plt
 
 
-def backtest(exchange, markets, trading_strategy, date_start, date_end, lookback, budget=1000000, verbose=False, base_index='INX'):
+def backtest(exchange, markets, trading_strategy, date_start, date_end, lookback, budget=1000000, verbose=False, base_index='INX', json=False):
 
     logger = get_logger()
+
+    if updateCheck():
+        logger.warn('Your version of auquanToolbox is not the most updated.' +
+            ' If you are using pip, please use \'pip install -U auquanToolbox\'.' + 
+            ' If you downloaded the package, you need to go to https://github.com/Auquan/auquan-toolbox-python'+
+            ' to redownload that package.')
 
     #Verify Settings
 
@@ -147,6 +153,9 @@ def backtest(exchange, markets, trading_strategy, date_start, date_end, lookback
     logger.info('Final Portfolio Value: %0.2f'%value_curr)
     #writejson(back_data,budget)
     writecsv({feature: data[start_index-1: end+1] for feature, data in back_data.items()},budget)
+
+    if json:
+        return writejson({feature: data[start_index-1: end+1] for feature, data in back_data.items()},budget)
 
     logger.info('Plotting Results...')
 
@@ -327,11 +336,31 @@ def writejson(back_data,budget):
     total_return = back_data['TOTAL_PNL']*100/budget
 
     d = {'dates':back_data['DAILY_PNL'].index.format(),\
-         'daily PnL':daily_return.sum(axis=1).values.tolist(),\
-         'total PnL':total_return.sum(axis=1).values.tolist(),\
+         'daily_pnl':daily_return.sum(axis=1).values.tolist(),\
+         'total_pnl':total_return.sum(axis=1).values.tolist(),\
          'stocks':back_data['DAILY_PNL'].columns.tolist(),\
-         'stock PnL':daily_return.values.tolist(),\
-         'stock Position':back_data['POSITION'].values.tolist()}
-    print(json.dumps(d))
+         'stock_pnl':daily_return.values.tolist(),\
+         'stock_position':back_data['POSITION'].values.tolist()}
+    return d;
 
 
+def updateCheck():
+    ''' checks for new version of toolbox
+    Returns:
+        returns True if the version of the toolox on PYPI is not the same as the current version
+        returns False if version is the same
+    '''
+
+    from auquanToolbox.version import __version__
+    updateStr = ''
+    try:
+        toolboxJson = urllib.urlopen('https://pypi.python.org/pypi/auquanToolbox/json')
+    except Exception as e:
+        return False
+
+    toolboxDict = json.loads(toolboxJson.read())
+
+    if __version__ != toolboxDict['info']['version']:
+        return True
+    else:
+        return False
