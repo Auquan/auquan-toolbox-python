@@ -42,10 +42,11 @@ def download_security_list(exchange, logger):
     file_name = '%s%s.txt'%(dir_name, exchange.lower())
     if not os.path.exists(file_name):
         url = 'https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/%s'%(file_name)
-        status = urlopen(url).getcode()
+        response = urlopen(url)
+        status = response.getcode()
         if status == 200:
             logger.info('Downloading data to file: %s'%file_name)
-            urlretrieve(url, file_name)
+            with open(file_name, 'w') as f: f.write(response.read())
             return True
         else:
             logger.info('File not found. Please check exchange settings!')
@@ -173,9 +174,10 @@ def load_data_nologs(exchange, markets, start, end, lookback=2):
     file_name = '%s%s.txt'%(dir_name, exchange.lower())
     if not os.path.exists(file_name):
         url = 'https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/%s'%(file_name)
-        status = urlopen(url).getcode()
+        response = urlopen(url)
+        status = response.getcode()
         if status == 200:
-            urlretrieve(url, file_name)
+            with open(file_name, 'w') as f: f.write(response.read())
         else:
             print('File not found. Please check exchange name!')
 
@@ -198,9 +200,10 @@ def load_data_nologs(exchange, markets, start, end, lookback=2):
         file_name = '%s%s.csv'%(dir_name, m.lower())
         if not os.path.exists(file_name):
             url = 'https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/%s/historicalData/%s.csv'%(exchange.lower(), m.lower())
-            status = urlopen(url).getcode()
+            response = urlopen(url)
+            status = response.getcode()
             if status == 200:
-                urlretrieve(url, file_name)
+                with open(file_name, 'w') as f: f.write(response.read())
             else:
                 print('File not found. Please check settings!')
     

@@ -11,9 +11,10 @@ from auquanToolbox.dataloader import load_data
 from auquanToolbox.resultviewer import loadgui
 from auquanToolbox.metrics import metrics, baseline
 import matplotlib.pyplot as plt
+import urllib2
 
 
-def backtest(exchange, markets, trading_strategy, date_start, date_end, lookback, budget=1000000, verbose=False, base_index='SPX', trading_costs = True, json=False):
+def backtest(exchange, markets, trading_strategy, date_start, date_end, lookback, budget=1000000, verbose=False, base_index='SPX', trading_costs = True, isJson=False):
 
     logger = get_logger()
 
@@ -152,9 +153,8 @@ def backtest(exchange, markets, trading_strategy, date_start, date_end, lookback
             break
             
     logger.info('Final Portfolio Value: %0.2f'%value_curr)
-    #writejson(back_data,budget)
 
-    if json:
+    if isJson:
         if base_index:
             baseline_data = baseline(exchange, base_index, date_range, logger)
             return writejson({feature: data[start_index-1: end+1] for feature, data in back_data.items()},budget,{feature: data[start_index-1: end+1] for feature, data in baseline_data.items()}, base_index)
@@ -289,7 +289,7 @@ def updateCheck():
     from auquanToolbox.version import __version__
     updateStr = ''
     try:
-        toolboxJson = urllib.urlopen('https://pypi.python.org/pypi/auquanToolbox/json')
+        toolboxJson = urllib2.urlopen('https://pypi.python.org/pypi/auquanToolbox/json')
     except Exception as e:
         return False
 
