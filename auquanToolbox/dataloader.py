@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 try:
-    from urllib import urlretrieve, urlopen
+    from urllib2 import urlopen
 except ImportError:
     from urllib.request import urlretrieve, urlopen
 import numpy as np
@@ -10,10 +10,11 @@ import os
 
 def download(exchange, ticker, file_name,logger):
     url = 'https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/%s/historicalData/%s.csv'%(exchange.lower(), ticker.lower())
-    status = urlopen(url).getcode()
+    response = urlopen(url)
+    status = response.getcode()
     if status == 200:
         logger.info('Downloading %s data to file: %s'%(ticker, file_name))
-        urlretrieve(url, file_name)
+        with open(file_name, 'w') as f: f.write(response.read())
         return True
     else:
         logger.info('File not found. Please check settings!')
