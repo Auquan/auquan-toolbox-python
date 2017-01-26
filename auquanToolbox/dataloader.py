@@ -122,6 +122,8 @@ def load_data(exchange, markets, start, end, lookback, budget, logger, random=Fa
                 logger.info('The market %s doesnt have data for the whole duration. Subsituting missing dates with the last known data'%market)
 
             for feature in features:
+                if not compatibleDictKeyCheck(back_data, feature):
+                    back_data[feature] = pd.DataFrame(index=date_range, columns=markets)
                 back_data[feature][market] = csv[feature][date_range]
                 if back_fill_data:
                     back_data[feature].loc[market_last_date:date_range[-1], market] = back_data[feature].at[market_last_date, market]
@@ -223,6 +225,8 @@ def load_data_nologs(exchange, markets, start, end, lookback=2):
             back_fill_data = True
 
         for feature in features:
+            if not compatibleDictKeyCheck(back_data, feature):
+                back_data[feature] = pd.DataFrame(index=date_range, columns=markets)
             back_data[feature][market] = csv[feature][date_range]
             if back_fill_data:
                 back_data[feature].loc[market_last_date:date_range[-1], market] = back_data[feature].at[market_last_date, market]
