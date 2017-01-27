@@ -32,6 +32,8 @@ def metrics(daily_pnl, total_pnl, baseline_data, base_index):
 def annualized_return(daily_return):
     total_return = daily_return.sum()
     total_days = daily_return.index.size
+    if total_return < -1:
+        total_return = -1
     return ((1 + total_return)**(252 / total_days) - 1)
     
 
