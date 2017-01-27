@@ -264,9 +264,10 @@ def writecsv(back_data,budget):
 
 def writejson(back_data,budget,baseline_data,base_index):
 
+    stats = metrics(daily_return, total_return, baseline_data,base_index)
+    # multiplying by 100 to make it readable
     daily_return = back_data['DAILY_PNL']*100/budget
     total_return = back_data['TOTAL_PNL']*100/budget
-    stats = metrics(daily_return, total_return, baseline_data,base_index)
 
     d = {'dates':back_data['DAILY_PNL'].index.format(),\
          'daily_pnl':daily_return.sum(axis=1).values.tolist(),\
