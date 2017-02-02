@@ -183,7 +183,9 @@ def loadgui(back_data, exchange, base_index, budget,logger):
 			return '{percent:.2%}'.format(percent=y)
 		else:
 			return y
-		
+	
+	def onFrameConfigure(canvas):
+		canvas.configure(scrollregion=canvas.bbox("all"))
 
 
 	######################
@@ -194,13 +196,27 @@ def loadgui(back_data, exchange, base_index, budget,logger):
 	GUI = tk.Tk()
 	GUI.title('Backtest Results')
 
+	winCanvas = tk.Canvas(GUI, borderwidth=0, background="#ffffff", width=1500, height=1000)
+	frame = tk.Frame(winCanvas, background="#ffffff")
+	vsb = tk.Scrollbar(GUI, orient="vertical", command=winCanvas.yview)
+	hsb = tk.Scrollbar(GUI, orient="horizontal", command=winCanvas.xview)
+	winCanvas.configure(yscrollcommand=vsb.set)
+	winCanvas.configure(xscrollcommand=hsb.set)
+
+	vsb.pack(side="left", fill="y")
+	hsb.pack(side="bottom", fill="x")
+	winCanvas.pack(side="right", fill="both", expand=True)
+	winCanvas.create_window((50,50), window=frame, anchor="nw")
+
+	frame.bind("<Configure>", lambda event, canvas=winCanvas: onFrameConfigure(winCanvas))
+
 	#Create dropdown for market
 
-	Label_1 = tk.Label(GUI, text="Trading Performance:")
+	Label_1 = tk.Label(frame, text="Trading Performance:")
 	Label_1.grid(row = 0, column = 0, sticky = tk.EW)
 
 	box_value = tk.StringVar()
-	dropdown = ttk.Combobox(GUI, textvariable  = box_value, state = 'readonly')
+	dropdown = ttk.Combobox(frame, textvariable  = box_value, state = 'readonly')
 	dropdown['values'] = ['TOTAL PORTFOLIO'] + daily_pnl.columns.values.tolist()
 	dropdown.grid(row=0, column=1,sticky=tk.EW)
 	dropdown.current(0)
@@ -208,25 +224,25 @@ def loadgui(back_data, exchange, base_index, budget,logger):
 
 	#Create entry field for start date
 
-	Label_2 = tk.Label(GUI, text="Start Date")
+	Label_2 = tk.Label(frame, text="Start Date")
 	Label_2.grid(row = 0, column = 2, sticky = tk.EW)
 
-	box_value2 = tk.StringVar(GUI, value=daily_pnl.index.format()[0])
-	start = tk.Entry(GUI, textvariable  = box_value2, validate='key', validatecommand=(GUI.register(isDate),'%P'))
+	box_value2 = tk.StringVar(frame, value=daily_pnl.index.format()[0])
+	start = tk.Entry(frame, textvariable  = box_value2, validate='key', validatecommand=(GUI.register(isDate),'%P'))
 	start.grid(row=0, column=3,sticky=tk.EW)
 
 	#Create entry field for end date
 
-	Label_3 = tk.Label(GUI, text="End Date")
+	Label_3 = tk.Label(frame, text="End Date")
 	Label_3.grid(row = 0, column = 4, sticky = tk.EW)
 
-	box_value3 = tk.StringVar(GUI, value=daily_pnl.index.format()[-1])
-	end = tk.Entry(GUI, textvariable  = box_value3, validate='key', validatecommand=(GUI.register(isDate),'%P'))
+	box_value3 = tk.StringVar(frame, value=daily_pnl.index.format()[-1])
+	end = tk.Entry(frame, textvariable  = box_value3, validate='key', validatecommand=(GUI.register(isDate),'%P'))
 	end.grid(row=0, column=5,sticky=tk.EW)
 
 	#Create Plot button to reload chart
 
-	button1 = tk.Button(GUI, text='PLOT', command=update_plot)
+	button1 = tk.Button(frame, text='PLOT', command=update_plot)
 	button1.grid(row = 0, column = 6, sticky = tk.EW)
 
 	#Create text widget with backtest results
@@ -234,7 +250,7 @@ def loadgui(back_data, exchange, base_index, budget,logger):
 	customFont1 = tkFont.Font(family="Helvetica", size=9, weight="bold")
 	customFont2 = tkFont.Font(family="Helvetica", size=12)
 
-	text = tk.Text(GUI,height=3, width=50, wrap=tk.WORD,bd=5, padx = 10, pady=5)
+	text = tk.Text(frame,height=3, width=50, wrap=tk.WORD,bd=5, padx = 10, pady=5)
 	text.grid(row=1,column=0, columnspan = 7, sticky=tk.EW)
 	String1 = ''
 	String2 = ''
@@ -256,9 +272,9 @@ def loadgui(back_data, exchange, base_index, budget,logger):
 	#Create canvas to plot chart
 
 	f = plt.figure(figsize = (16,8))
-	canvas = FigureCanvasTkAgg(f, master=GUI)
+	canvas = FigureCanvasTkAgg(f, master=frame)
 	canvas.get_tk_widget().grid(row=2,column=0,columnspan = 7, rowspan = 1, sticky=tk.NSEW)
-	toolbar_frame = tk.Frame(GUI) 
+	toolbar_frame = tk.Frame(frame) 
 	toolbar_frame.grid(row=4,column=0,columnspan=7) 
 	toolbar = NavigationToolbar2TkAgg( canvas, toolbar_frame )
 
@@ -307,7 +323,7 @@ def loadgui(back_data, exchange, base_index, budget,logger):
 
 	#Create Quit Button
 
-	button2 = tk.Button(GUI, text='QUIT', command=close_window)
+	button2 = tk.Button(frame, text='QUIT', command=close_window)
 	button2.grid(row = 4, column = 6, sticky = tk.EW)
 
 	GUI.mainloop()
