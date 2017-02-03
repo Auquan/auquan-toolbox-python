@@ -66,7 +66,7 @@ def load_data(exchange, markets, start, end, lookback, budget, logger, random=Fa
 
     # because there are some holidays adding some cushion to lookback
     try:
-        dates = [pd.to_datetime(start)-BDay(lookback* 1.10), pd.to_datetime(end)]
+        dates = [pd.to_datetime(start)-BDay((lookback* 1.10)+10), pd.to_datetime(end)]
     except ValueError:
         logger.exception("%s or %s is not valid date. Please check settings!"%(start, end))
         raise ValueError("%s or %s is not valid date. Please check settings!"%(start, end))
