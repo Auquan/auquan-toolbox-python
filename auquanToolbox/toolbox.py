@@ -224,6 +224,17 @@ def get_logger():
     logger.addHandler(console_handler)
     return logger
 
+class noop_logger:
+    def info(self, str):
+        print(str)
+    def exception(self, str):
+        print(str)
+    def warn(self, str):
+        print(str)
+
+def get_noop_logger():
+    return noop_logger()
+
 def writecsv(back_data,budget):
 
     results = pd.DataFrame(0, index=back_data['DAILY_PNL'].index, columns=['Daily Returns'])

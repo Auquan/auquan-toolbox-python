@@ -234,18 +234,18 @@ def load_data_nologs(exchange, markets, start, end, lookback=2):
             if back_fill_data:
                 back_data[feature].loc[market_last_date:date_range[-1], market] = back_data[feature].at[market_last_date, market]
 
-        for m in market_to_drop: 
-            markets.remove(m) 
+    for m in market_to_drop: 
+        markets.remove(m) 
 
-        for feature in features:
-            back_data[feature].drop(market_to_drop, axis=1, inplace=True)
-        dates_to_drop = pd.Series(False, index=date_range)
-        for feature in features:
-            dates_to_drop |= pd.isnull(back_data[feature]).any(axis=1)
+    for feature in features:
+        back_data[feature].drop(market_to_drop, axis=1, inplace=True)
+    dates_to_drop = pd.Series(False, index=date_range)
+    for feature in features:
+        dates_to_drop |= pd.isnull(back_data[feature]).any(axis=1)
 
-        dropped_dates = date_range[dates_to_drop]
-        date_range = date_range[~dates_to_drop]
-        for feature in features:
-            back_data[feature] = back_data[feature].drop(dropped_dates)
+    dropped_dates = date_range[dates_to_drop]
+    date_range = date_range[~dates_to_drop]
+    for feature in features:
+        back_data[feature] = back_data[feature].drop(dropped_dates)
 
     return back_data
