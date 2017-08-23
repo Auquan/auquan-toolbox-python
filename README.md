@@ -13,7 +13,7 @@ The modules are in the folder auquanToolbox. We also provide sample strategies t
 2. [How to write a trading strategy?](https://github.com/Auquan/auquan-toolbox-python#2-how-to-write-a-trading-strategy)
 3. [Backtesting](https://github.com/Auquan/auquan-toolbox-python#3-backtesting)
 
-#1. #Installation
+# 1. Installation
 ### Python 2.7
 You need Python 2.7 (Python 3 will be supported later) to run this toolbox. There are several distributions of Python 2.7 that can be used. For an easy installation process, we recommend Anaconda since it will reliably install all the necessary dependencies. Download [Anaconda](http://continuum.io/downloads) and follow the instructions on the [installation page](http://docs.continuum.io/anaconda/install). Once you have Python, you can then install the toolbox.
 
@@ -78,7 +78,7 @@ Any feature data can be accessed as `lookback_data['OPEN']`. The output is a pan
 | PRICE	| *Optional.* If specified, buy orders are executed only if next day's open price is equal or lower than the price and sell orders are executed if it is equal or higher than the price. Set as 0 if you don't want to specify a price.
 
     
-#3. ## Backtesting:
+# 3. Backtesting:
 The system is run by calling the command  
 `backtest(exchange, markets, trading_strategy, date_start, date_end, lookback)`  
 You can set an optional verbose=True to see more details  
