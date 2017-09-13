@@ -1,5 +1,6 @@
-**This is the old Auquan Toolbox, which is a stripped down version of our new, [more powerful toolbox which provides extensive functionality and customization](https://bitbucket.org/auquan/auquantoolbox/wiki/Home). If you are new to writing strategies, practice with this toolbox. 
-Find the new, expanded version [here](https://bitbucket.org/auquan/auquantoolbox/wiki/Home)**
+**This is the old Auquan Toolbox, which is a stripped down version of our new, [more powerful toolbox](https://bitbucket.org/auquan/auquantoolbox/wiki/Home). 
+If you are new to writing strategies, continue practicing with this toolbox. 
+If you are comfortable with financial data, find the new, expanded version which provides extensive functionality and customization [here](https://bitbucket.org/auquan/auquantoolbox/wiki/Home)**
 
 
 # About Auquan Toolbox
