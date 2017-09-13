@@ -1,4 +1,5 @@
-**If you are looking to participate in [Quant Quest](quant-quest.auquan.com), our competition to find the best quant, please register [here](quant-quest.auquan.com).**
+**This is the old Auquan Toolbox, which is a stripped down version of our new, [more powerful toolbox]((https://bitbucket.org/auquan/auquantoolbox/wiki/Home)). If you are new to writing strategies, practice with this toolbox. 
+Find the new, expanded version [here](https://bitbucket.org/auquan/auquantoolbox/wiki/Home)**
 
 
 # About Auquan Toolbox
