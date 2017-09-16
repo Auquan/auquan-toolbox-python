@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Sep 15 21:51:33 2017
 
-@author: ptorre
-"""
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 import pandas as pd
