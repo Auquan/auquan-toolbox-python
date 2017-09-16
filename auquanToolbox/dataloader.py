@@ -1,38 +1,66 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-try:
-    from urllib2 import urlopen
-except ImportError:
-    from urllib.request import urlopen
+
+import requests
 import numpy as np
 import pandas as pd
 from pandas.tseries.offsets import BDay
 import os
 
 
+
+def download_csv(url, file_name, logger=None):
+    try:
+        
+        #%%
+        pd.read_csv(url).set_index("Date").to_csv(file_name)
+        #%%
+
+        return True
+    except:
+        #%%
+        response = requests.get(url)
+        
+        try:
+            assert response.ok #AFNP
+            with open(file_name, 'w') as f:
+                f.write(response.text)
+            return True
+        except:
+            err = 'File not found. Please check settings!'
+            if logger is None:
+                print (err)
+            else:
+                logger.info(err)
+            return False
+        #%%
 def download(exchange, ticker, file_name, logger):
+    #%%
+    
     url = 'https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/%s/historicalData/%s.csv' % (
         exchange.lower(), ticker.lower())
-    response = urlopen(url)
-    status = response.getcode()
-    if status == 200:
-        logger.info('Downloading %s data to file: %s' % (ticker, file_name))
-        with open(file_name, 'w') as f:
-            f.write(response.read())
-        return True
-    else:
-        logger.info('File not found. Please check settings!')
-        return False
+    #%%
+    logger.info('Downloading %s data to file: %s' % (ticker, file_name))
+    return download_csv(url, file_name, logger)
+    #%%
+    
+    
+    
+    
 
 
 def data_available(exchange, markets, logger):
+    
+    #%%
     dir_name = '%s/historicalData/' % exchange.lower()
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
-    for m in markets:
-        file_name = '%s%s.csv' % (dir_name, m.lower())
+    for ticker in markets:
+        
+    #%%
+        file_name = '%s%s.csv' % (dir_name, ticker.lower())
         if not os.path.exists(file_name):
             try:
-                assert(download(exchange, m, file_name, logger)
+                assert(download(exchange, ticker, file_name, logger)
                        ), "%s not found. Please check settings!" % file_name
             except AssertionError:
                 logger.exception(
@@ -48,18 +76,16 @@ def download_security_list(exchange, logger):
 
     file_name = '%s%s.txt' % (dir_name, exchange.lower())
     if not os.path.exists(file_name):
+        #%%
+        
         url = 'https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/%s' % (
             file_name)
-        response = urlopen(url)
-        status = response.getcode()
-        if status == 200:
-            logger.info('Downloading data to file: %s' % file_name)
-            with open(file_name, 'w') as f:
-                f.write(response.read())
-            return True
-        else:
-            logger.info('File not found. Please check exchange settings!')
-        return False
+        
+        
+        logger.info('Downloading data to file: %s' % file_name)
+        return download_csv(url, file_name, logger)
+        
+        #%%
     else:
         return True
 
@@ -72,7 +98,7 @@ def compatibleDictKeyCheck(dict, key):
 
 
 def load_data(exchange, markets, start, end, lookback, budget, logger, random=False):
-
+    #%%
     logger.info("Loading Data from %s to %s...." % (start, end))
 
     # because there are some holidays adding some cushion to lookback
@@ -91,7 +117,7 @@ def load_data(exchange, markets, start, end, lookback, budget, logger, random=Fa
         logger.exception("Start Date is after End Date")
         raise
 
-    # Download list of securities
+    #%% Download list of securities
     assert(download_security_list(exchange, logger))
     if len(markets) == 0:
         file_name = '%s/%s.txt' % (exchange.lower(), exchange.lower())
@@ -99,20 +125,32 @@ def load_data(exchange, markets, start, end, lookback, budget, logger, random=Fa
         markets = [line.strip() for line in open(file_name)]
 
     markets = [m.upper() for m in markets]
+    #%%
     features = ['OPEN', 'CLOSE', 'HIGH', 'LOW', 'VOLUME']
     date_range = pd.date_range(start=dates[0], end=dates[1], freq='B')
     back_data = {}
+    #%%
     if random:
         for feature in features:
             back_data[feature] = pd.DataFrame(np.random.randint(10, 50, size=(date_range.size, len(markets))),
                                               index=date_range,
                                               columns=markets)
     else:
+        #%%
+        
+        
+        
+        
+        #%%
+        
+        
         for feature in features:
             back_data[feature] = pd.DataFrame(
                 index=date_range, columns=markets)
         assert data_available(exchange, markets, logger)
         market_to_drop = []
+        #%%
+        
         for market in markets:
             logger.info('Reading %s.csv' % market)
             csv = pd.read_csv('%s/historicalData/%s.csv' %
@@ -148,6 +186,7 @@ def load_data(exchange, markets, start, end, lookback, budget, logger, random=Fa
                 if back_fill_data:
                     back_data[feature].loc[market_last_date:date_range[-1],
                                            market] = back_data[feature].at[market_last_date, market]
+        #%%
 
         for m in market_to_drop:
             logger.info('Dropping %s. Not Enough Data' % m)
@@ -163,7 +202,7 @@ def load_data(exchange, markets, start, end, lookback, budget, logger, random=Fa
         date_range = date_range[~dates_to_drop]
         for feature in features:
             back_data[feature] = back_data[feature].drop(dropped_dates)
-
+    #%%
     back_data['COST TO TRADE'] = pd.DataFrame(
         0, index=date_range, columns=markets)
     back_data['POSITION'] = pd.DataFrame(0, index=date_range, columns=markets)
@@ -201,9 +240,14 @@ def load_data_nologs(exchange, markets, start, end, lookback=2):
     if not os.path.exists(file_name):
         url = 'https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/%s' % (
             file_name)
-        response = urlopen(url)
-        status = response.getcode()
-        if status == 200:
+        
+        
+        
+        
+        
+        response = requests.get(url)
+        
+        if response.ok:
             with open(file_name, 'w') as f:
                 f.write(response.read())
         else:
@@ -228,13 +272,9 @@ def load_data_nologs(exchange, markets, start, end, lookback=2):
         if not os.path.exists(file_name):
             url = 'https://raw.githubusercontent.com/Auquan/auquan-historical-data/master/%s/historicalData/%s.csv' % (
                 exchange.lower(), m.lower())
-            response = urlopen(url)
-            status = response.getcode()
-            if status == 200:
-                with open(file_name, 'w') as f:
-                    f.write(response.read())
-            else:
-                print('File not found. Please check settings!')
+            
+            assert download_csv(url, file_name)
+            
 
     market_to_drop = []
     for market in markets:

@@ -22,11 +22,8 @@ def metrics(daily_pnl, total_pnl, baseline_data, base_index):
         stats['Base Return(%)'] = annualized_return(baseline_data['DAILY_PNL'])
         stats['Beta'] = beta(daily_return, baseline_data['DAILY_PNL'])
 
-    for x in stats.keys():
-        if np.isnan(stats[x]):
-            del stats[x]
 
-    return stats
+    return pd.Series(stats).dropna().to_dict()
 
 
 def annualized_return(daily_return):
