@@ -2,11 +2,12 @@
 verify_ssl = true
 url = "https://pypi.python.org/simple"
 [requires]
-python_version = "2.7"
+python_version = "3.5"
 [packages]
 
 numpy = "*"
 pandas = "*"
 matplotlib = "*"
+"-e ." = "*"
 
 

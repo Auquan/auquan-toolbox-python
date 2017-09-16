@@ -1,4 +1,5 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import (absolute_import, division, 
+                        print_function, unicode_literals)
 import numpy as np
 import pandas as pd
 import os
@@ -8,21 +9,25 @@ import datetime as dt
 from auquanToolbox.dataloader import load_data
 from auquanToolbox.resultviewer import loadgui
 from auquanToolbox.metrics import metrics, baseline
-import urllib2
+from urllib.request import urlopen
 
 
-def backtest(exchange, markets, trading_strategy, date_start, date_end, lookback, budget=1000000, verbose=False, base_index='SPX', trading_costs=True, isJson=False):
-
+def backtest(exchange, markets, trading_strategy, date_start, date_end, 
+             lookback, budget=1000000, verbose=False, base_index='SPX', 
+             trading_costs=True, isJson=False):
+    #%%
     logger = get_logger()
 
     if updateCheck():
         logger.warn('Your version of auquanToolbox is not the most updated.' +
-                    ' If you are using pip, please use \'pip install -U auquanToolbox\'.' +
-                    ' If you downloaded the package, you need to go to https://github.com/Auquan/auquan-toolbox-python' +
+                    ' If you are using pip, please use'+
+                    '\'pip install -U auquanToolbox\'.' +
+                    ' If you downloaded the package, you need to go to '+
+                    ' https://github.com/Auquan/auquan-toolbox-python' +
                     ' to redownload that package.')
 
     # Verify Settings
-
+    #%%
     try:
         assert(isinstance(lookback, int)), "Lookback is invalid"
     except AssertionError:
@@ -32,7 +37,8 @@ def backtest(exchange, markets, trading_strategy, date_start, date_end, lookback
     # Load data for backtest
 
     (back_data, date_range) = load_data(exchange, markets,
-                                        date_start, date_end, lookback, budget, logger)
+                                        date_start, date_end, 
+                                        lookback, budget, logger)
     logger.info('Initial funds: %0.2f' % budget)
     logger.info('------------------------------------')
     logger.info('Evaluating...')
@@ -44,7 +50,7 @@ def backtest(exchange, markets, trading_strategy, date_start, date_end, lookback
     cost_to_trade = None
 
     start_index = -1
-
+    #%%
     for startDate in pd.date_range(start=date_start, end=date_end, freq='B'):
         if startDate not in date_range:
             logger.info(startDate.strftime(
@@ -328,7 +334,7 @@ def updateCheck():
 
     from auquanToolbox.version import __version__
     try:
-        toolboxJson = urllib2.urlopen(
+        toolboxJson = urlopen(
             'https://pypi.python.org/pypi/auquanToolbox/json')
     except:
         return False

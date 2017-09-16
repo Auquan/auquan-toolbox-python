@@ -3,10 +3,10 @@ import numpy as np
 import pandas as pd
 import matplotlib
 matplotlib.use("TkAgg") # important to call this right after
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-from matplotlib import style
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg#, NavigationToolbar2TkAgg
+#from matplotlib import style
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+#import matplotlib.dates as mdates
 import matplotlib.ticker as mtick
 
 try:

@@ -1,24 +1,24 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "518b040b95134bfc23ad33c76d1cdffaa76690b26bbe313f42ef6254bdd7fe10"
+            "sha256": "23efb0c33af8068125ec43318a75020206ec3ae3a7f27c2523ab72bf57f7be22"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
-            "implementation_version": "0",
+            "implementation_version": "3.5.3",
             "os_name": "posix",
             "platform_machine": "x86_64",
             "platform_python_implementation": "CPython",
             "platform_release": "4.11.11-200.fc25.x86_64",
             "platform_system": "Linux",
             "platform_version": "#1 SMP Mon Jul 17 17:41:12 UTC 2017",
-            "python_full_version": "2.7.13",
-            "python_version": "2.7",
-            "sys_platform": "linux2"
+            "python_full_version": "3.5.3",
+            "python_version": "3.5",
+            "sys_platform": "linux"
         },
         "pipfile-spec": 3,
         "requires": {
-            "python_version": "2.7"
+            "python_version": "3.5"
         },
         "sources": [
             {
@@ -28,6 +28,12 @@
         ]
     },
     "default": {
+        "auquantoolbox": {
+            "hashes": [
+                "sha256:7e50d790a6c64c48943899a3b6d09fc366d9f4d90b8da95a8e3bf1ed1d65baf5"
+            ],
+            "version": "==1.16.0"
+        },
         "cycler": {
             "hashes": [
                 "sha256:1d8a5ae1ff6c5cf9b93e8811e581232ad8920aeec647c37316ceac982b08cb2d",
