@@ -17,19 +17,22 @@ def download_csv(url, file_name, logger=None):
 
         return True
     except:
+        #%%
         response = requests.get(url)
-        if response.ok:
+        
+        try:
+            assert response.ok #AFNP
             with open(file_name, 'w') as f:
-                f.write(response.text())
+                f.write(response.text)
             return True
-        else:
+        except:
             err = 'File not found. Please check settings!'
             if logger is None:
                 print (err)
             else:
                 logger.info(err)
             return False
-
+        #%%
 def download(exchange, ticker, file_name, logger):
     #%%
     
@@ -51,13 +54,13 @@ def data_available(exchange, markets, logger):
     dir_name = '%s/historicalData/' % exchange.lower()
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
-    for m in markets:
+    for ticker in markets:
         
     #%%
-        file_name = '%s%s.csv' % (dir_name, m.lower())
+        file_name = '%s%s.csv' % (dir_name, ticker.lower())
         if not os.path.exists(file_name):
             try:
-                assert(download(exchange, m, file_name, logger)
+                assert(download(exchange, ticker, file_name, logger)
                        ), "%s not found. Please check settings!" % file_name
             except AssertionError:
                 logger.exception(
