@@ -1,6 +1,5 @@
-**This is the old Auquan Toolbox, which is a stripped down version of our new, [more powerful toolbox](https://bitbucket.org/auquan/auquantoolbox/wiki/Home). 
-If you are new to writing strategies, continue practicing with this toolbox. 
-If you are comfortable with financial data, find the new, expanded version which provides extensive functionality and customization [here](https://bitbucket.org/auquan/auquantoolbox/wiki/Home)**
+# Note: Deprecation notice 
+**This is the old Auquan Toolbox, and is no longer maintained. Please find the latest active version of the toolbox [here](https://links.auquan.com/auquan-toolbox). All the issues and Pull requests should be created in the new repo**
 
 
 # About Auquan Toolbox
